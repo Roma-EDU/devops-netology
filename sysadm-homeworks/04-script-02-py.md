@@ -1,97 +1,135 @@
 # Домашнее задание к занятию "4.2. Использование Python для решения типовых DevOps задач"
 
-## Обязательные задания
+## Обязательная задача 1
 
-1. Есть скрипт:
-	```python
-    #!/usr/bin/env python3
-	a = 1
-	b = '2'
-	c = a + b
-	```
-	* Какое значение будет присвоено переменной c: ошибка
-	* Как получить для переменной c значение 12: c = str(a) + b
-	* Как получить для переменной c значение 3: c = a + int(b)
+Есть скрипт:
+```python
+#!/usr/bin/env python3
+a = 1
+b = '2'
+c = a + b
+```
 
-1. Мы устроились на работу в компанию, где раньше уже был DevOps Engineer. Он написал скрипт, позволяющий узнать, какие файлы модифицированы в репозитории, относительно локальных изменений. Этим скриптом недовольно начальство, потому что в его выводе есть не все изменённые файлы, а также непонятен полный путь к директории, где они находятся. Как можно доработать скрипт ниже, чтобы он исполнял требования вашего руководителя?
+### Вопросы:
+| Вопрос  | Ответ |
+| ------------- | ------------- |
+| Какое значение будет присвоено переменной `c`?  | `ошибка компиляции` |
+| Как получить для переменной `c` значение 12?  | `c = str(a) + b` |
+| Как получить для переменной `c` значение 3?  | `c = a + int(b)` |
 
-	```python
-    #!/usr/bin/env python3
 
-    import os
+## Обязательная задача 2
+Мы устроились на работу в компанию, где раньше уже был DevOps Engineer. Он написал скрипт, позволяющий узнать, какие файлы модифицированы в репозитории, относительно локальных изменений. Этим скриптом недовольно начальство, потому что в его выводе есть не все изменённые файлы, а также непонятен полный путь к директории, где они находятся. Как можно доработать скрипт ниже, чтобы он исполнял требования вашего руководителя?
 
-	bash_command = ["cd ~/netology/sysadm-homeworks", "git status"]
-	result_os = os.popen(' && '.join(bash_command)).read()
-    is_change = False
-	for result in result_os.split('\n'):
-        if result.find('modified') != -1:
-            prepare_result = result.replace('\tmodified:   ', '')
-            print(prepare_result)
-            break
-
-	```
+  ```python
+  #!/usr/bin/env python3
+  
+  import os
+  
+  bash_command = ["cd ~/netology/sysadm-homeworks", "git status"]
+  result_os = os.popen(' && '.join(bash_command)).read()
+  is_change = False
+  for result in result_os.split('\n'):
+      if result.find('modified') != -1:
+          prepare_result = result.replace('\tmodified:   ', '')
+          print(prepare_result)
+          break
+  ```
 	
-	```python
-	#!/usr/bin/env python3
-	import os
+### Ваш скрипт:
 	
-	bash_command = ["cd ~/netology/sysadm-homeworks", "git status"]
-	result_os = os.popen(' && '.join(bash_command)).read()
+  ```python
+  #!/usr/bin/env python3
+  import os
 	
-	for result in result_os.split('\n'):
-	  if result.find('modified') != -1:
-	    prepare_result = result.replace('\tmodified:   ', '')
- 	    print(f'~/netology/sysadm-homeworks/{prepare_result}')
+  bash_command = ["cd ~/netology/sysadm-homeworks", "git status"]
+  result_os = os.popen(' && '.join(bash_command)).read()
 	
-	```
+  for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+      prepare_result = result.replace('\tmodified:   ', '')
+      print(f'~/netology/sysadm-homeworks/{prepare_result}')
 
+  ```
+
+### Вывод скрипта при запуске при тестировании:
+  ```
+  ~/netology/sysadm-homeworks/New-Folder/file1.txt
+  ~/netology/sysadm-homeworks/New-Folder/file2.txt
+  ```
+
+## Обязательная задача 3
 1. Доработать скрипт выше так, чтобы он мог проверять не только локальный репозиторий в текущей директории, а также умел воспринимать путь к репозиторию, который мы передаём как входной параметр. Мы точно знаем, что начальство коварное и будет проверять работу этого скрипта в директориях, которые не являются локальными репозиториями.
 
-	```python
-	#!/usr/bin/env python3
-	import os
-	import sys
-	
-	path = sys.argv[1];
-	bash_command = ["cd " + path, "git status"]
-	result_os = os.popen(' && '.join(bash_command)).read()
-	
-	is_change = False
-	for result in result_os.split('\n'):
-	  if result.find('modified') != -1:
-	    is_change = True
-	    prepare_result = result.replace('\tmodified:   ', '')
-	    print(f'{path}/{prepare_result}')
-	
-	if not is_change:
-	  print("No changes");
-	
-	```
+### Ваш скрипт:
 
-1. Наша команда разрабатывает несколько веб-сервисов, доступных по http. Мы точно знаем, что на их стенде нет никакой балансировки, кластеризации, за DNS прячется конкретный IP сервера, где установлен сервис. Проблема в том, что отдел, занимающийся нашей инфраструктурой очень часто меняет нам сервера, поэтому IP меняются примерно раз в неделю, при этом сервисы сохраняют за собой DNS имена. Это бы совсем никого не беспокоило, если бы несколько раз сервера не уезжали в такой сегмент сети нашей компании, который недоступен для разработчиков. Мы хотим написать скрипт, который опрашивает веб-сервисы, получает их IP, выводит информацию в стандартный вывод в виде: <URL сервиса> - <его IP>. Также, должна быть реализована возможность проверки текущего IP сервиса c его IP из предыдущей проверки. Если проверка будет провалена - оповестить об этом в стандартный вывод сообщением: [ERROR] <URL сервиса> IP mismatch: <старый IP> <Новый IP>. Будем считать, что наша разработка реализовала сервисы: drive.google.com, mail.google.com, google.com.
-	```python
-	#!/usr/bin/env python3
-	import time
-	import socket
+  ```python
+  #!/usr/bin/env python3
+  import os
+  import sys
 	
-	services = ('drive.google.com', 'mail.google.com', 'google.com')
-	ips = []
-	while True:
-	  i = -1
-	  for service in services:
-	    i += 1
-	    time.sleep(1)
-	    ip = socket.gethostbyname(service)
-	    print(f'{service} - {ip}')
+  path = sys.argv[1];
+  bash_command = ["cd " + path, "git status"]
+  result_os = os.popen(' && '.join(bash_command)).read()
 	
-	    if len(ips) == i:
-	      ips.append(ip)
+  is_change = False
+  for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+      is_change = True
+      prepare_result = result.replace('\tmodified:   ', '')
+      print(f'{path}/{prepare_result}')
+	
+  if not is_change:
+    print("No changes");
+	
+  ```
+
+## Обязательная задача 4
+Наша команда разрабатывает несколько веб-сервисов, доступных по http. Мы точно знаем, что на их стенде нет никакой балансировки, кластеризации, за DNS прячется конкретный IP сервера, где установлен сервис. Проблема в том, что отдел, занимающийся нашей инфраструктурой очень часто меняет нам сервера, поэтому IP меняются примерно раз в неделю, при этом сервисы сохраняют за собой DNS имена. Это бы совсем никого не беспокоило, если бы несколько раз сервера не уезжали в такой сегмент сети нашей компании, который недоступен для разработчиков. Мы хотим написать скрипт, который опрашивает веб-сервисы, получает их IP, выводит информацию в стандартный вывод в виде: <URL сервиса> - <его IP>. Также, должна быть реализована возможность проверки текущего IP сервиса c его IP из предыдущей проверки. Если проверка будет провалена - оповестить об этом в стандартный вывод сообщением: [ERROR] <URL сервиса> IP mismatch: <старый IP> <Новый IP>. Будем считать, что наша разработка реализовала сервисы: `drive.google.com`, `mail.google.com`, `google.com`.
+
+### Ваш скрипт:
+
+  ```python
+  
+  #!/usr/bin/env python3
+  import time
+  import socket
+	
+  services = ('drive.google.com', 'mail.google.com', 'google.com')
+  ips = []
+  while True:
+    i = -1
+    for service in services:
+      i += 1
+      time.sleep(1)
+      ip = socket.gethostbyname(service)
+      print(f'{service} - {ip}')
+      
+      if len(ips) == i:
+        ips.append(ip)
 	    
-	    if ips[i] != ip:
-	      print(f'[ERROR] {service} IP mismatch: {ips[i]} {ip}')
-	      ips[i] = ip
-	```
+      if ips[i] != ip:
+        print(f'[ERROR] {service} IP mismatch: {ips[i]} {ip}')
+        ips[i] = ip
+	
+  ```
 
+### Вывод скрипта при запуске при тестировании:
+```
+drive.google.com - 74.125.124.139
+mail.google.com - 142.250.191.229
+google.com - 142.250.190.46
+drive.google.com - 172.217.5.14
+[ERROR] drive.google.com IP mismatch: 74.125.124.139 172.217.5.14
+mail.google.com - 172.217.0.37
+[ERROR] mail.google.com IP mismatch: 142.250.191.229 172.217.0.37
+google.com - 172.217.219.102
+[ERROR] google.com IP mismatch: 142.250.190.46 172.217.219.102
+drive.google.com - 142.250.191.142
+[ERROR] drive.google.com IP mismatch: 172.217.5.14 142.250.191.142
+mail.google.com - 142.250.191.101
+[ERROR] mail.google.com IP mismatch: 172.217.0.37 142.250.191.101
+```
 
 ## ~~Дополнительное задание (со звездочкой*) - необязательно к выполнению~~
 
