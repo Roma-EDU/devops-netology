@@ -23,6 +23,7 @@
 **Ответ**
 
 Преимущество Ansible в том, что он работает на существующей SSH инфраструктуре без необходимости настройки специального окружения
+
 В моём понимании идеальным вариантом мог бы быть гибридный метод работы (push и pull), чтобы можно было как с "центрального" сервера уведомить остальных о необходимости обновиться, так и получить актуальную конфигурацию виртуальной машиной в случае, если по какой-то причине сообщение не дошло / не могло быть в данный момент обработано.
 Если же выбирать только между push и pull, то на мой взгляд, pull более надёжный. При этом стоит учитывать, что система придёт в нужное состояние не сразу, а через недетерминнированный промежуток времени.
 
@@ -49,7 +50,20 @@
   vagrant --version
   Vagrant 2.2.18
   ```
-- Ansible 
+- Ansible (На Windows пока не поддерживается, есть установка через Cygwin или устновка [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) и накатывание Ansible на [него](https://docs.ansible.com/ansible/latest/user_guide/windows_faq.html#can-ansible-run-on-windows); документация чуть устарела, во второй строке вместо python-pip нужно указать python3-pip)
+  ```bash
+  ansible --version
+  ansible [core 2.12.1]
+    config file = None
+    configured module search path = ['/home/roma/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+    ansible python module location = /home/roma/.local/lib/python3.8/site-packages/ansible
+    ansible collection location = /home/roma/.ansible/collections:/usr/share/ansible/collections
+    executable location = /home/roma/.local/bin/ansible
+    python version = 3.8.10 (default, Nov 26 2021, 20:14:08) [GCC 9.3.0]
+    jinja version = 2.10.1
+    libyaml = True
+   ``` 
+  
 
 
 ## Задача 4 (*)
@@ -60,4 +74,27 @@
 - Зайти внутрь ВМ, убедиться, что Docker установлен с помощью команды
 ```
 docker ps
+```
+
+Не получается подружить Ansible (на WSL) и Vagrant (на Windows)
+Вываливается вот такая ошибка (обновлять до последней версии пробовал, не помогло :((
+```
+Running provisioner: ansible...
+Windows is not officially supported for the Ansible Control Machine.
+Please check https://docs.ansible.com/intro_installation.html#control-machine-requirements
+Vagrant gathered an unknown Ansible version:
+
+
+and falls back on the compatibility mode '1.8'.
+
+Alternatively, the compatibility mode can be specified in your Vagrantfile:
+https://www.vagrantup.com/docs/provisioning/ansible_common.html#compatibility_mode
+    server2.netology: Running ansible-playbook...
+The Ansible software could not be found! Please verify
+that Ansible is correctly installed on your host system.
+
+If you haven't installed Ansible yet, please install Ansible
+on your host system. Vagrant can't do this for you in a safe and
+automated way.
+Please check https://docs.ansible.com for more information.
 ```
