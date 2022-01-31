@@ -146,6 +146,32 @@ Hey, Netology
 - Добавьте еще один файл в папку ```/data``` на хостовой машине;
 - Подключитесь во второй контейнер и отобразите листинг и содержание файлов в ```/data``` контейнера.
 
+**Ответ**
+
+```bash
+# 1. Запускаем первый контейнер с именем s1 на debian (интерактивный, с tty, в фоновом режиме), подключая папку /data хоста в /data контейнера
+$ docker run -itd -v /data:/data --name s1 debian
+3ab7f74bed2c3188537d615be5fe8b0ca03ca7d648f49727b9d93d50d7622e18
+
+# 2. Запускаем второй контейнер с именем s2 на centos с аналогичными настройками
+$ docker run -itd -v /data:/data --name s2 centos
+2d84f51eb20c213aaf8832a150e2fe1a645ad80e6f858ae7b606c731589b2dfc
+
+# 3. На s2 создаём файл server_status.log с содержимым ОК
+$ docker exec s2 echo OK > server_status.log
+
+# 4. На хосте в папке /data создаём файл common.log
+$ echo "Now is $(date)" > /data/common.log
+
+# 5. Заходим в контейнер s1 и просматриваем список файлов и их содержимое для папки /data
+$ docker attach s1
+$ ls /data
+common.log  server_status.log
+$ cat /data/*
+Now is Mon Jan 31 01:16:54 UTC 2022
+OK
+```
+
 ## Задача 4 (*)
 
 Воспроизвести практическую часть лекции самостоятельно.
