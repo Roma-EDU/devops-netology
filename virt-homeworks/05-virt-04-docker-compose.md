@@ -116,7 +116,67 @@ Setting up packer (1.7.10) ...
 $ packer --version
 1.7.10
 ```
+### Шаг 5: Редактируем конфигурационный файл для создания образа
+Проверяем, что в файле ``/packer/centos-7-base.json`` указаный правильные ``folder_id``, ``subnet_id`` (см. шаг 3) и ``token``
+```json
+{
+  "builders": [
+    {
+      "disk_type": "network-nvme",
+      "folder_id": "b1gr1vdb5g3ktr8v0877",
+      "image_description": "by packer",
+      "image_family": "centos",
+      "image_name": "centos-7-base",
+      "source_image_family": "centos-7",
+      "ssh_username": "centos",
+      "subnet_id": "e9b7k86eethgliqmku5r",
+      "token": "MY_API_TOKEN",
+      "type": "yandex",
+      "use_ipv4_nat": true,
+      "zone": "ru-central1-a"
+    }
+  ],
+  "provisioners": [
+    {
+      "inline": [
+        "sudo yum -y update",
+        "sudo yum -y install bridge-utils bind-utils iptables curl net-tools tcpdump rsync telnet openssh-server"
+      ],
+      "type": "shell"
+    }
+  ]
+}
+```
+### Шаг 6: Собираем образ
+Переходим в папку с конфигурационным файлом packer'а для создания образа, валидируем и собираем
+```bash
+$ cd packer
+$ packer validate centos-7-base.json
+The configuration is valid.
+$ packer build centos-7-base.json
+yandex: output will be in this color.
 
+==> yandex: Creating temporary RSA SSH key for instance...
+==> yandex: Using as source image: fd8aqitd4vl5950ihohp (name: "centos-7-v20220131", family: "centos-7")
+==> yandex: Use provided subnet id e9b7k86eethgliqmku5r
+==> yandex: Creating disk...
+...
+==> yandex: Success image create...
+==> yandex: Destroying boot disk...
+    yandex: Disk has been deleted!
+Build 'yandex' finished after 2 minutes 6 seconds.
+
+==> Wait completed after 2 minutes 6 seconds
+
+==> Builds finished. The artifacts of successful builds are:
+--> yandex: A disk image was created: centos-7-base (id: fd889r4a79btes3ngeue) with family name centos
+$ yc compute image list
++----------------------+---------------+--------+----------------------+--------+
+|          ID          |     NAME      | FAMILY |     PRODUCT IDS      | STATUS |
++----------------------+---------------+--------+----------------------+--------+
+| fd889r4a79btes3ngeue | centos-7-base | centos | f2eacrudv331nbat9ehb | READY  |
++----------------------+---------------+--------+----------------------+--------+
+```
 
 ## Задача 2
 
