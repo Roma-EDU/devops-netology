@@ -213,6 +213,62 @@ Get:1 http://security.ubuntu.com/ubuntu focal-security InRelease [114 kB]
 Unpacking terraform (1.1.5) ...
 Setting up terraform (1.1.5) ...
 ```
+### Шаг 2: Генерируем ключи для использования в Terraform
+Создаём [сервисный аккаунт](https://console.cloud.yandex.ru/folders/b1gr1vdb5g3ktr8v0877?section=service-accounts) под именем ``netology-service`` и получаем для него ключ key.json (кладём в текущую папку terraform)
+```bash
+$ yc iam key create --service-account-name netology-service --output key.json
+id: ajeg2k8jmcb8imoq8pi1
+service_account_id: ajek5t1ccbpljaoo1g6h
+created_at: "2022-02-06T15:04:59.984520425Z"
+key_algorithm: RSA_2048
+```
+Так же при отсутствии ~/.ssh/id_rsa.pub сформируем ключ для доступа по ssh
+```bash
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/vagrant/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/vagrant/.ssh/id_rsa
+Your public key has been saved in /home/vagrant/.ssh/id_rsa.pub
+...
+```
+### Шаг 3: Запускаем виртуальную машину в Яндекс.Облаке с помощью Terraform
+```bash
+$ terraform --version
+Terraform v1.1.5
+on linux_amd64
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding latest version of yandex-cloud/yandex...
+- Installing yandex-cloud/yandex v0.70.0...
+- Installed yandex-cloud/yandex v0.70.0 (self-signed, key ID E40F590B50BB8E40)
+...
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+$ terraform plan
+...
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if
+you run "terraform apply" now.
+$ terraform apply -auto-approve
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+...
+yandex_compute_instance.node01: Creation complete after 29s [id=fhmkarsibqjhn5kurvit]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+external_ip_address_node01_yandex_cloud = "130.193.50.212"
+internal_ip_address_node01_yandex_cloud = "192.168.101.5"
+```
+
 
 ## Задача 3
 
