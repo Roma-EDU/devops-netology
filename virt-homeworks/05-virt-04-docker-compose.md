@@ -447,7 +447,9 @@ yandex_vpc_network.default: Destruction complete after 1s
 
 Destroy complete! Resources: 3 destroyed.
 ```
-И удаляем образ из [Compute Cloud - Образы](https://console.cloud.yandex.ru/folders/b1gr1vdb5g3ktr8v0877/compute/images)
+И не забываем почистить само облако:
+1. Удаляем образ из [Compute Cloud - Образы](https://console.cloud.yandex.ru/folders/b1gr1vdb5g3ktr8v0877/compute/images)
+2. Удаляем сервисный аккаунт
 
 ## Задача 4 (*)
 
