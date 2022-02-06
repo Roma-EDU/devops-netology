@@ -432,6 +432,22 @@ changed: [node01.netology.cloud]
 PLAY RECAP *************************************************************************************************************
 node01.netology.cloud      : ok=12   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
+### Шаг 5*. Всё удаляем из облака, чтобы не списывались деньги
+После завершения работы
+```bash
+$ cd /vagrant/05-virt-04-docker-compose/terraform
+$ terraform destroy -auto-approve
+yandex_vpc_network.default: Refreshing state... [id=enp7m47o7doenrao65mo]
+yandex_vpc_subnet.default: Refreshing state... [id=e9bojf54i0dmtmk7m52a]
+yandex_compute_instance.node01: Refreshing state... [id=fhmkarsibqjhn5kurvit]
+...
+yandex_vpc_subnet.default: Destruction complete after 4s
+yandex_vpc_network.default: Destroying... [id=enp7m47o7doenrao65mo]
+yandex_vpc_network.default: Destruction complete after 1s
+
+Destroy complete! Resources: 3 destroyed.
+```
+И удаляем образ из [Compute Cloud - Образы](https://console.cloud.yandex.ru/folders/b1gr1vdb5g3ktr8v0877/compute/images)
 
 ## Задача 4 (*)
 
