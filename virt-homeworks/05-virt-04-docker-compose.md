@@ -7,7 +7,7 @@
 **Ответ**
 
 <p align="center">
-  <img width="1200" height="600" src="./05-virt-04-docker-compose-assets/Disk-image-from-packer.png">
+  <img width="1247" height="723" src="./05-virt-04-docker-compose-assets/Disk-image-from-packer.png">
 </p>
 
 ### Шаг 0: Подготовка окружения
@@ -190,6 +190,9 @@ done (5s)
 
 **Ответ**
 
+<p align="center">
+  <img width="1496" height="899" src="./05-virt-04-docker-compose-assets/Terraform-VM.png">
+</p>
 
 ### Шаг 1: Установка Terraform
 Переходим на сайт разработчика [Terraform.io](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started#install-terraform) и узнаём, как установить terraform (большая часть зависимостей уже пришла с packer'ом, просто убеждаемся что всё хорошо)
@@ -274,6 +277,157 @@ internal_ip_address_node01_yandex_cloud = "192.168.101.5"
 
 Создать ваш первый готовый к боевой эксплуатации компонент мониторинга, состоящий из стека микросервисов.
 
+**Ответ**
+
+### Шаг 1. Устанавливаем ansible
+```bash
+$ sudo apt install ansible
+Reading package lists... Done
+...
+Processing triggers for man-db (2.9.1-1) ...
+$ cd ../ansible
+```
+
+### Шаг 2. Корректируем конфигурационные файлы для ansible
+Прописываем внешний ip в ``inventory``
+```yml
+[nodes:children]
+manager
+
+[manager]
+node01.netology.cloud ansible_host=130.193.50.212
+```
+
+Проверяем provision.yml
+```yml
+---
+
+  - hosts: nodes
+    become: yes
+    become_user: root
+    remote_user: centos
+
+    tasks:
+      - name: Create directory for ssh-keys
+        file: state=directory mode=0700 dest=/root/.ssh/
+
+      - name: Adding rsa-key in /root/.ssh/authorized_keys
+        copy: src=~/.ssh/id_rsa.pub dest=/root/.ssh/authorized_keys owner=root mode=0600
+        ignore_errors: yes
+
+      - name: Checking DNS
+        command: host -t A google.com
+
+      - name: Installing tools
+        yum: >
+          name={{ item }}
+          state=present
+          update_cache=yes
+        with_items:
+          - git
+          - curl
+
+      - name: Add docker repository
+        command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+      - name: Installing docker package
+        yum: >
+          name={{ item }}
+          state=present
+          update_cache=yes
+        with_items:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+
+      - name: Enable docker daemon
+        systemd:
+          name: docker
+          state: started
+          enabled: yes
+
+      - name: Install docker-compose
+        raw: $(curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose)
+
+      - name: Synchronization
+        copy:
+          src: stack/
+          dest: "/opt/stack/"
+          owner: root
+          group: root
+          mode: 0644
+        become: true
+
+      - name: Pull all images in compose
+        command: docker-compose -f /opt/stack/docker-compose.yaml pull
+
+      - name: Up all services in compose
+        command: docker-compose -f /opt/stack/docker-compose.yaml up -d
+
+```
+### Шаг 3*. Корректируем конфигурационные файлы для ansible
+Копируем всё содержимое в пользовательскую папку с ограниченными правами
+```bash
+$ cp -R . ~/ansible
+```
+***Вопрос. Как отключить эту проверку???***
+```
+[WARNING]: Ansible is being run in a world writable directory (/vagrant/05-virt-04-docker-compose/ansible), ignoring it
+as an ansible.cfg source. For more information see
+https://docs.ansible.com/ansible/devel/reference_appendices/config.html#cfg-in-world-writable-dir
+[WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match
+'all'
+[WARNING]: Could not match supplied host pattern, ignoring: nodes
+```
+### Шаг 4. Запускаем playbook
+В процессе соглашаемся (yes) на создание нового подключения
+```bash
+$ ansible-playbook provision.yml
+
+PLAY [nodes] ***********************************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************
+The authenticity of host '130.193.50.212 (130.193.50.212)' can't be established.
+ECDSA key fingerprint is SHA256:19xHI1Tw0cxiAQ0x0zvQrmrpTKu2i3uHsluNN5MTl8w.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+ok: [node01.netology.cloud]
+
+TASK [Create directory for ssh-keys] ***********************************************************************************
+ok: [node01.netology.cloud]
+
+TASK [Adding rsa-key in /root/.ssh/authorized_keys] ********************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Checking DNS] ****************************************************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Installing tools] ************************************************************************************************
+changed: [node01.netology.cloud] => (item=['git', 'curl'])
+
+TASK [Add docker repository] *******************************************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Installing docker package] ***************************************************************************************
+changed: [node01.netology.cloud] => (item=['docker-ce', 'docker-ce-cli', 'containerd.io'])
+
+TASK [Enable docker daemon] ********************************************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Install docker-compose] ******************************************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Synchronization] *************************************************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Pull all images in compose] **************************************************************************************
+changed: [node01.netology.cloud]
+
+TASK [Up all services in compose] **************************************************************************************
+changed: [node01.netology.cloud]
+
+PLAY RECAP *************************************************************************************************************
+node01.netology.cloud      : ok=12   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
 
 
 ## Задача 4 (*)
