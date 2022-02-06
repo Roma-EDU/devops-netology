@@ -4,6 +4,10 @@
 
 Создать собственный образ операционной системы с помощью Packer.
 
+<p align="center">
+  <img width="1200" height="600" src="./05-virt-04-docker-compose-assets/Disk-image-from-packer.png">
+</p>
+
 ## Задача 2
 
 Создать вашу первую виртуальную машину в Яндекс.Облаке.
