@@ -177,10 +177,42 @@ $ yc compute image list
 | fd889r4a79btes3ngeue | centos-7-base | centos | f2eacrudv331nbat9ehb | READY  |
 +----------------------+---------------+--------+----------------------+--------+
 ```
+### Шаг 7*: Удаляем лишнее
+Удаляем подсеть и сеть, они нам больше не нужны (и будут мешать при запуске terraform, т.к. на нашем аккаунте Yandex.Cloud лимит в 1 сеть и 1 подсеть)
+```bash
+$ yc vpc subnet delete --name my-subnet-a && yc vpc network delete --name net
+done (5s)
+```
 
 ## Задача 2
 
 Создать вашу первую виртуальную машину в Яндекс.Облаке.
+
+**Ответ**
+
+
+### Шаг 1: Установка Terraform
+Переходим на сайт разработчика [Terraform.io](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started#install-terraform) и узнаём, как установить terraform (большая часть зависимостей уже пришла с packer'ом, просто убеждаемся что всё хорошо)
+```bash
+$ cd ../terraform
+$ sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+Get:1 http://security.ubuntu.com/ubuntu focal-security InRelease [114 kB]
+...
+software-properties-common set to manually installed.
+0 upgraded, 0 newly installed, 0 to remove and 9 not upgraded.
+$ curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+OK
+$ sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+Get:1 http://security.ubuntu.com/ubuntu focal-security InRelease [114 kB]
+...
+Fetched 336 kB in 2s (161 kB/s)
+Reading package lists... Done
+$ sudo apt-get update && sudo apt-get install terraform
+Get:1 http://security.ubuntu.com/ubuntu focal-security InRelease [114 kB]
+...
+Unpacking terraform (1.1.5) ...
+Setting up terraform (1.1.5) ...
+```
 
 ## Задача 3
 
