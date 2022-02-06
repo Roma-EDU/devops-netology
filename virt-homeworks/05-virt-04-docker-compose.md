@@ -279,6 +279,10 @@ internal_ip_address_node01_yandex_cloud = "192.168.101.5"
 
 **Ответ**
 
+<p align="center">
+  <img width="1279" height="977" src="./05-virt-04-docker-compose-assets/Grafana.png">
+</p>
+
 ### Шаг 1. Устанавливаем ansible
 ```bash
 $ sudo apt install ansible
@@ -428,7 +432,6 @@ changed: [node01.netology.cloud]
 PLAY RECAP *************************************************************************************************************
 node01.netology.cloud      : ok=12   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
-
 
 ## Задача 4 (*)
 
