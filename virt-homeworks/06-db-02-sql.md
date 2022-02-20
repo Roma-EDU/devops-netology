@@ -385,6 +385,26 @@ test_db=# SELECT c.id, c.fio, o.name FROM clients c JOIN orders o ON c.orderId =
 
 Приведите получившийся результат и объясните что значат полученные значения.
 
+**Ответ**
+
+### Шаг 1. Формирование запроса
+
+```sql
+test_db=# EXPLAIN SELECT id, fio FROM clients WHERE orderId IS NOT NULL;
+                        QUERY PLAN
+-----------------------------------------------------------
+ Seq Scan on clients  (cost=0.00..10.70 rows=70 width=520)
+   Filter: (orderid IS NOT NULL)
+(2 rows)
+```
+
+* Seq Scan on clients - будет выполнено последовательное сканирование
+* cost=0.00..10.70 - ожидаемая стоимость запуска 0, стоимость выполнения при чтении таблицы до конца 10.70 (условных единиц чтения страницы с диска)
+* rows=70 - количество строк
+* width=520 - размер строки в байтах
+* Filter: (orderid IS NOT NULL) - будет выполнена фильтрация
+
+
 ## Задача 6
 
 Создайте бэкап БД test_db и поместите его в volume, предназначенный для бэкапов (см. Задачу 1).
@@ -396,3 +416,159 @@ test_db=# SELECT c.id, c.fio, o.name FROM clients c JOIN orders o ON c.orderId =
 Восстановите БД test_db в новом контейнере.
 
 Приведите список операций, который вы применяли для бэкапа данных и восстановления. 
+
+**Ответ**
+
+### Шаг 1. Создадим бэкап
+
+Под рутовым пользователем создадим файл для бэкапа (расположен в backups_volume) и выдадим на него все права. Затем под "системной" учёткой ``postgres`` сохраним бэкап базы
+```bash
+$ touch /var/backups/db-2022-02-21.out
+$ chmod 777 /var/backups/db-2022-02-21.out
+$ su - postgres
+$ pg_dumpall > /var/backups/db-2022-02-21.out
+$ ls -s /var/backups/db-2022-02-21.out
+12 /var/backups/db-2022-02-21.out
+```
+
+### Шаг 2. Выйдем из учётки и остановим сервис
+
+```bash
+$ exit
+logout
+$ exit
+exit
+$ docker-compose down
+Stopping postgres_container ... done
+Removing postgres_container ... done
+Removing network 06-db-02-sql_localnet
+```
+
+### Шаг 3. Отредактируем манифест для запуска другого экземляра БД
+
+Добавляем вторую службу и отдельный volume (инача БД сразу подтянется)
+docker-compose.yml
+```yaml
+networks:
+  localnet:
+    driver: bridge
+    
+volumes:
+  pgdata_volume:
+  backups_volume:
+  pgdata_volume_copy:
+
+services:
+  postgres_service:
+    container_name: postgres_container
+    image: postgres:12
+    environment:
+      POSTGRES_DB: "postgres_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "pwd4postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - pgdata_volume:/var/lib/postgresql/data
+      - backups_volume:/var/backups
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - localnet
+
+  postgres_service_copy:
+    container_name: postgres_container_copy
+    image: postgres:12
+    environment:
+      POSTGRES_DB: "postgres_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "pwd4postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - pgdata_volume_copy:/var/lib/postgresql/data
+      - backups_volume:/var/backups
+    ports:
+      - "5433:5432"
+    restart: always
+    networks:
+      - localnet
+```
+
+### Шаг 4. Запускаем второй сервис и восстанавливаем БД из бэкапа
+
+```bash
+$ docker-compose up -d postgres_service_copy
+Creating network "06-db-02-sql_localnet" with driver "bridge"
+Creating volume "06-db-02-sql_pgdata_volume_copy" with default driver
+Creating postgres_container_copy ... done
+$ docker exec -ti postgres_container_copy /bin/bash
+$ su - postgres
+$ psql
+psql (12.10 (Debian 12.10-1.pgdg110+1))
+Type "help" for help.
+
+postgres=# \list
+                                  List of databases
+    Name     |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
+-------------+----------+----------+------------+------------+-----------------------
+ postgres    | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ postgres_db | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ template0   | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+             |          |          |            |            | postgres=CTc/postgres
+ template1   | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+             |          |          |            |            | postgres=CTc/postgres
+(4 rows)
+
+postgres=# \q
+postgres@46e5ab69b52f:~$ psql -f /var/backups/db-2022-02-21.out postgres
+SET
+SET
+...
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+GRANT
+GRANT
+GRANT
+GRANT
+
+$ psql
+psql (12.10 (Debian 12.10-1.pgdg110+1))
+Type "help" for help.
+
+postgres=# \list
+                                      List of databases
+    Name     |  Owner   | Encoding |  Collate   |   Ctype    |       Access privileges
+-------------+----------+----------+------------+------------+--------------------------------
+ postgres    | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ postgres_db | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ template0   | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres                   +
+             |          |          |            |            | postgres=CTc/postgres
+ template1   | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres                   +
+             |          |          |            |            | postgres=CTc/postgres
+ test_db     | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =Tc/postgres                  +
+             |          |          |            |            | postgres=CTc/postgres         +
+             |          |          |            |            | "test-admin-user"=CTc/postgres
+(5 rows)
+
+postgres=# \q
+```
+
+### Шаг 5*. Выходим и останавливаем всё
+
+```bash
+$ exit
+exit
+$ docker-compose down
+Stopping postgres_container_copy ... done
+Removing postgres_container_copy ... done
+Removing network 06-db-02-sql_localnet
+$ exit
+logout
+$ exit
+logout
+Connection to 127.0.0.1 closed.
+
+>vagrant halt
+==> default: Attempting graceful shutdown of VM...
+```
