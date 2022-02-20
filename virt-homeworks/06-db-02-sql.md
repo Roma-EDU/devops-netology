@@ -297,6 +297,34 @@ test_db=# SELECT * FROM information_schema.table_privileges WHERE grantee IN ('t
     - запросы 
     - результаты их выполнения.
 
+**Ответ**
+
+### Шаг 1. Наполняем таблицы данными
+
+```sql
+test_db=# INSERT INTO orders (name, price) VALUES ('Шоколад', 10), ('Принтер', 3000), ('Книга', 500), ('Монитор', 7000), ('Гитара', 4000);
+INSERT 0 5
+test_db=# INSERT INTO clients (fio, country) VALUES ('Иванов Иван Иванович', 'USA'), ('Петров Петр Петрович', 'Canada'), ('Иоганн Себастьян Бах', 'Japan'), ('Ронни Джеймс Дио', 'Russia'), ('Ritchie Blackmore', 'Russia');
+INSERT 0 5
+```
+
+### Шаг 2. Просматриваем количество записей
+
+```sql
+test_db=# SELECT COUNT(*) FROM orders;
+ count
+-------
+     5
+(1 row)
+
+test_db=# SELECT COUNT(*) FROM clients;
+ count
+-------
+     5
+(1 row)
+
+```
+
 ## Задача 4
 
 Часть пользователей из таблицы clients решили оформить заказы из таблицы orders.
@@ -314,6 +342,41 @@ test_db=# SELECT * FROM information_schema.table_privileges WHERE grantee IN ('t
 Приведите SQL-запрос для выдачи всех пользователей, которые совершили заказ, а также вывод данного запроса.
  
 Подсказк - используйте директиву `UPDATE`.
+
+**Ответ**
+
+### Шаг 1. Обновляем записи в таблице
+
+```sql
+test_db=# UPDATE clients SET orderId = 3 WHERE id = 1;
+UPDATE 1
+test_db=# UPDATE clients SET orderId = 4 WHERE id = 2;
+UPDATE 1
+test_db=# UPDATE clients SET orderId = 5 WHERE id = 3;
+UPDATE 1
+```
+
+### Шаг 2. Смотрим всех пользователей, которые совершили заказ
+
+Два варианта: либо только пользователи (запрос проще и быстрее), либо вместе с заказом (запрос чуть тяжелее, зато нагляднее)
+```sql
+test_db=# SELECT id, fio FROM clients WHERE orderId IS NOT NULL;
+ id |                  fio
+----+----------------------------------------
+  1 | Иванов Иван Иванович
+  2 | Петров Петр Петрович
+  3 | Иоганн Себастьян Бах
+(3 rows)
+
+test_db=# SELECT c.id, c.fio, o.name FROM clients c JOIN orders o ON c.orderId = o.id;
+ id |                  fio                   |      name
+----+----------------------------------------+----------------
+  1 | Иванов Иван Иванович | Книга
+  2 | Петров Петр Петрович | Монитор
+  3 | Иоганн Себастьян Бах | Гитара
+(3 rows)
+
+```
 
 ## Задача 5
 
