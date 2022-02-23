@@ -241,11 +241,11 @@ mysql> SELECT COUNT(*) FROM orders WHERE price > 300;
 
 ```sql
 mysql> CREATE USER 'test'@'localhost' 
-IDENTIFIED WITH mysql_native_password BY 'test-pass' 
-WITH MAX_QUERIES_PER_HOUR 100 
-PASSWORD EXPIRE INTERVAL 180 DAY 
-FAILED_LOGIN_ATTEMPTS 3 
-ATTRIBUTE '{"fname": "James", "lname": "Pretty"}';
+    -> IDENTIFIED WITH mysql_native_password BY 'test-pass' 
+    -> WITH MAX_QUERIES_PER_HOUR 100 
+    -> PASSWORD EXPIRE INTERVAL 180 DAY 
+    -> FAILED_LOGIN_ATTEMPTS 3 
+    -> ATTRIBUTE '{"fname": "James", "lname": "Pretty"}';
 Query OK, 0 rows affected (0.05 sec)
 
 mysql> GRANT SELECT ON test_db.* TO 'test'@'localhost';
@@ -270,6 +270,57 @@ mysql> SELECT * FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE user = 'test';
 Измените `engine` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
 - на `MyISAM`
 - на `InnoDB`
+
+**Ответ**
+
+### Шаг 1. Включаем профилирование запросов и смотрим движки таблиц
+
+Информация о движке хранится в `information_schema.TABLES`. Для таблицы `orders` используется движок по умолчанию `InnoDB`. 
+В конце не забываем отключить профилирование
+
+```sql
+mysql> SET profiling = 1;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+mysql> SHOW PROFILES;
+Empty set, 1 warning (0.00 sec)
+
+mysql> SELECT table_name, engine FROM information_schema.TABLES WHERE table_schema = 'test_db';
++------------+--------+
+| TABLE_NAME | ENGINE |
++------------+--------+
+| orders     | InnoDB |
++------------+--------+
+1 row in set (0.01 sec)
+
+mysql> ALTER TABLE orders ENGINE = MyISAM;
+Query OK, 5 rows affected (0.23 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> ALTER TABLE orders ENGINE = InnoDB;
+Query OK, 5 rows affected (0.15 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SHOW PROFILES;
++----------+------------+--------------------------------------------------------------------------+
+| Query_ID | Duration   | Query                                                                    |
++----------+------------+--------------------------------------------------------------------------+
+|        1 | 0.00239400 | SELECT table_name, engine FROM information_schema.TABLES WHERE table_schema = 'test_db' |
+|        2 | 0.00404100 | SHOW ENGINES                                                             |
+|        3 | 0.00169450 | SELECT * FROM orders                                                     |
+|        4 | 0.02109325 | SELECT * FROM information_schema.TABLES WHERE table_name = 'orders'      |
+|        5 | 0.00305400 | SELECT * FROM information_schema.TABLES WHERE table_schema = 'test_db'   |
+|        6 | 0.00072450 | SHOW WARNINGS                                                            |
+|        7 | 0.22506275 | ALTER TABLE orders ENGINE = MyISAM                                       |
+|        8 | 0.15286250 | ALTER TABLE orders ENGINE = InnoDB                                       |
++----------+------------+--------------------------------------------------------------------------+
+8 rows in set, 1 warning (0.00 sec)
+
+mysql> SET profiling = 0;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+```
+
 
 ## Задача 4 
 
