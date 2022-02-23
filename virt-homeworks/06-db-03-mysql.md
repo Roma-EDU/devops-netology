@@ -334,3 +334,108 @@ Query OK, 0 rows affected, 1 warning (0.00 sec)
 - Размер файла логов операций 100 Мб
 
 Приведите в ответе измененный файл `my.cnf`.
+
+### Шаг 0*. Подготавливаем окружение
+
+С помощью `cat /etc/*-release` узнаём, что образ основан на debian, поэтому чуть-чуть другой синтаксис. Обновляем репозитории и устанавливаем редактор `nano`
+```bash
+mysql> exit
+Bye
+$ cat /etc/*-release
+PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+NAME="Debian GNU/Linux"
+VERSION_ID="10"
+VERSION="10 (buster)"
+VERSION_CODENAME=buster
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+
+$ apt update
+...
+$ apt install nano
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+Suggested packages:
+  spell
+The following NEW packages will be installed:
+  nano
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 544 kB of archives.
+After this operation, 2269 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian buster/main amd64 nano amd64 3.2-3 [544 kB]
+Fetched 544 kB in 0s (2678 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package nano.
+(Reading database ... 9323 files and directories currently installed.)
+Preparing to unpack .../archives/nano_3.2-3_amd64.deb ...
+```
+
+### Шаг 1. Редактируем конфигурационный файл
+
+Добавляем раздел InnoDB согласно требованиям в файл /etc/mysql/my.cnf
+```bash
+$ nano my.cnf
+$ cat my.cnf
+# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+#
+# The MySQL  Server configuration file.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+[mysqld]
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+datadir         = /var/lib/mysql
+secure-file-priv= NULL
+
+## InnoDB
+innodb_flush_log_at_trx_commit = 2
+innodb_file_per_table = 1
+innodb_log_buffer_size = 1M
+innodb_buffer_pool_size = 600M
+innodb_log_file_size = 100M
+
+# Custom config should go here
+!includedir /etc/mysql/conf.d/
+```
+
+### Шаг 2. Рестартуем сервис, чтобы изменения вступили в силу
+
+Выходим из контейнера (несколько команд `exit`) и просим докер рестартовать
+```bash
+$ sudo docker-compose restart
+Restarting mysql_container ... done
+```
+
+### Шаг 3*. Выключаем всё :)
+
+```bash
+$ sudo docker-compose down
+Stopping mysql_container ... done
+Removing mysql_container ... done
+Removing network 06-db-03-mysql_localnet
+$ exit
+logout
+Connection to 127.0.0.1 closed.
+
+>vagrant halt
+==> default: Attempting graceful shutdown of VM...
+```
