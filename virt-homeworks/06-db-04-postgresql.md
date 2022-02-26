@@ -260,3 +260,39 @@ test_database=# SELECT * FROM orders;
 Используя утилиту `pg_dump` создайте бекап БД `test_database`.
 
 Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
+
+**Ответ**
+
+### Шаг 1. Создаём бэкап
+
+Выходим из консоли и с помощью 'pg_dump' создаём бэкап базы в файл `test_database_2022_02_26.sql`
+```bash
+test_database=# \q
+$ pg_dump test_database > ./data/test_database_2022_02_26.sql
+```
+
+### Шаг 2. Добавляем уникальность значения
+
+Переходим под рутового пользователя обновляемся и ставим `nano` для редактированиия файла
+```bash
+$ exit
+logout
+$ apt update
+Reading state information... Done
+2 packages can be upgraded. Run 'apt list --upgradable' to see them.
+$ apt install nano
+Reading package lists... Done
+...
+$ cd /var/lib/postgresql/data
+$ nano test_database_2022_02_26.sql
+```
+
+Допишем в файл бэкапа `test_database_2022_02_26.sql` ограничение на уникальность по `title`
+```sql
+-- CUSTOM UNIQUE INDECES
+ALTER TABLE ONLY public.orders_1
+    ADD CONSTRAINT orders_1_unique_title UNIQUE (title);
+ALTER TABLE ONLY public.orders_2
+    ADD CONSTRAINT orders_2_unique_title UNIQUE (title);
+```
+Postgres может обеспечивать уникальность только в рамках одной таблицы, поэтому да, будет работать только в разных партициях
