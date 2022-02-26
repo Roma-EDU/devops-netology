@@ -169,6 +169,92 @@ test_database=# SELECT attname, avg_width FROM pg_stats WHERE tablename = 'order
 
 Можно ли было изначально исключить "ручное" разбиение при проектировании таблицы orders?
 
+**Ответ**
+
+### Шаг 1. Создаём скрипт для разбивки таблицы на 2 части
+
+Заводим переменную для удобства
+```bash
+test_database=# \set price_limit 499
+```
+
+и выполняем скрипт по разбивке таблицы `orders` на кусочки
+(подсказка: последним шагом можно добавить SELECT'ы из интересующих нас таблиц и ROLLBACK вместо COMMIT. После отладки убрать лишнее и поставить COMMIT)
+```sql
+BEGIN;
+
+-- Создаём партиции
+CREATE TABLE orders_1 (
+  CHECK (price > :price_limit)
+) INHERITS (orders);
+CREATE TABLE orders_2 (
+  CHECK (price <= :price_limit)
+) INHERITS (orders);
+
+-- Копируем данные из основной таблицы в партиции
+INSERT INTO orders_1 SELECT * FROM orders WHERE price > :price_limit;
+INSERT INTO orders_2 SELECT * FROM orders WHERE price <= :price_limit;
+
+-- Удаляем данные ТОЛЬКО из основной таблицы (если бы перекрытии было не полным, то с WHERE)
+DELETE FROM ONLY orders;
+
+-- Создаём правила для записи данных в партиции вместо основной таблицы
+CREATE RULE orders_inserts_to_1_part AS 
+  ON INSERT TO orders WHERE (price > :price_limit)
+  DO INSTEAD INSERT INTO orders_1 VALUES (NEW.*);
+CREATE RULE orders_inserts_to_2_part AS 
+  ON INSERT TO orders WHERE (price <= :price_limit)
+  DO INSTEAD INSERT INTO orders_2 VALUES (NEW.*);
+
+COMMIT;
+```
+
+Проверяем как прошло разбиение
+```bash
+test_database=# SELECT * FROM orders_1;
+ id |       title        | price
+----+--------------------+-------
+  2 | My little database |   500
+  6 | WAL never lies     |   900
+  8 | Dbiezdmin          |   501
+(3 rows)
+
+test_database=# SELECT * FROM orders_2;
+ id |        title         | price
+----+----------------------+-------
+  1 | War and peace        |   100
+  3 | Adventure psql time  |   300
+  4 | Server gravity falls |   300
+  5 | Log gossips          |   123
+  7 | Me and my bash-pet   |   499
+(5 rows)
+
+test_database=# SELECT * FROM ONLY orders;
+ id | title | price
+----+-------+-------
+(0 rows)
+
+test_database=# SELECT * FROM orders;
+ id |        title         | price
+----+----------------------+-------
+  2 | My little database   |   500
+  6 | WAL never lies       |   900
+  8 | Dbiezdmin            |   501
+  1 | War and peace        |   100
+  3 | Adventure psql time  |   300
+  4 | Server gravity falls |   300
+  5 | Log gossips          |   123
+  7 | Me and my bash-pet   |   499
+(8 rows)
+
+```
+
+### Шаг 2. Исключение ручного разбиения
+
+* Можно во время создания таблицы было воспользоваться синтаксисом [PARTITION BY | PARTITION OF](https://postgrespro.com/docs/postgresql/11/sql-createtable)
+* Можно взять готовую хранимую [процедуру](https://github.com/2gis/partition_magic), которая будет автоматически добавлять нужные таблицы. 
+
+
 ## Задача 4
 
 Используя утилиту `pg_dump` создайте бекап БД `test_database`.
