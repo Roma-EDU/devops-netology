@@ -114,6 +114,51 @@ General
 
 **Приведите в ответе** команду, которую вы использовали для вычисления и полученный результат.
 
+**Ответ**
+
+### Шаг 1. Создаём БД
+
+Поскольку мы всё ещё находимся в управляющей консоли `psql`, выполним создание БД `test_database` из неё и выйдем
+```sql
+postgres=# create database test_database;
+CREATE DATABASE
+postgres=# \q
+```
+
+### Шаг 2. Восстанавливаем бэкап
+
+Находим относительный путь до .sql-бэкапа и восстанавливаем его в созданную на предыдущем шаге БД
+```bash
+$ pwd
+/var/lib/postgresql
+$ psql  test_database < ./data/test_dump.sql
+SET
+SET
+SET
+...
+ALTER TABLE
+```
+
+### Шаг 3. Подключаемся к восстановленной БД и анализируем её
+
+С помощью таблицы `pg_stats` узнаём, что в таблице `orders` больше всего отведено место для столбца `title` 
+```sql
+$ psql -d test_database
+psql (13.6 (Debian 13.6-1.pgdg110+1))
+Type "help" for help.
+
+test_database=# ANALYZE;
+ANALYZE
+test_database=# SELECT attname, avg_width FROM pg_stats WHERE tablename = 'orders';
+ attname | avg_width
+---------+-----------
+ id      |         4
+ title   |        16
+ price   |         4
+(3 rows)
+```
+
+
 ## Задача 3
 
 Архитектор и администратор БД выяснили, что ваша таблица orders разрослась до невиданных размеров и
