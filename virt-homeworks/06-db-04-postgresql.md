@@ -19,8 +19,83 @@
 
 ### Шаг 1. Поднимаем контейнер с PostgreSQL
 
+Пишем манифест docker-compose.yml
+```yml
+version: "3.9"
 
+networks:
+  localnet:
+    driver: bridge
+    
+volumes:
+  pgdata_volume:
 
+services:
+  postgres_service:
+    container_name: postgres_container
+    image: postgres:13
+    environment:
+      POSTGRES_DB: "postgres_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "pwd4postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - pgdata_volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - localnet
+```
+
+И с помощью `docker-compose` запускаем контейнер согласно этому манифесту
+```bash
+$ cd /vagrant/06-db-04-postgresql
+$ sudo docker-compose up -d
+Creating network "06-db-04-postgresql_localnet" with driver "bridge"
+Creating volume "06-db-04-postgresql_pgdata_volume" with default driver
+Pulling postgres_service (postgres:13)...
+13: Pulling from library/postgres
+5eb5b503b376: Already exists
+...
+Starting postgres_container ... done
+```
+
+Заодно для задачи 2 закидываем в него бэкап `test_dump.sql` базы данных в папку, соответствующую "постоянному" `volume` (см. манифест pgdata_volume:/var/lib/postgresql/data)
+```bash
+$ sudo docker cp test_dump.sql postgres_container:/var/lib/postgresql/data/test_dump.sql
+```
+
+### Шаг 2. Подключаемся к БД
+
+Подключаемся к развёрнутому контейнеру и переходим под пользователя `postgres` (тот который POSTGRES_USER: "postgres"). Затем вводим `psql` (без параметров, т.к. правильно назвали пользователя :))
+```bash
+$ sudo docker exec -ti postgres_container /bin/bash
+$ su - postgres
+postgres@ec9f6ef9c97d:~$ psql
+psql (13.6 (Debian 13.6-1.pgdg110+1))
+Type "help" for help.
+
+```
+
+### Шаг 3. Изучаем список доступных команд
+
+С помощью `\?` (и потом стрелочки вниз) узнаём список доступных команд
+```bash
+postgres=# \?
+General
+  \copyright             show PostgreSQL usage and distribution terms
+  \crosstabview [COLUMNS] execute query and display results in crosstab
+  \errverbose            show most recent error message at maximum verbosity
+  ...
+```
+
+Управляющие команды для:
+- вывода списка БД `\db[+]  [PATTERN]      list tablespaces`
+- подключения к БД `\c[onnect] {[DBNAME|- USER|- HOST|- PORT|-] | conninfo}      connect to new database (currently "postgres")`
+- вывода списка таблиц `\dt[S+] [PATTERN]      list tables`
+- вывода описания содержимого таблиц `\d[S+]  NAME           describe table, view, sequence, or index`
+- выхода из psql `\q`
 
 ## Задача 2
 
