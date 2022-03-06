@@ -182,6 +182,113 @@ The push refers to repository [docker.io/roma4edu/netology_elasticsearch]
 При проектировании кластера elasticsearch нужно корректно рассчитывать количество реплик и шард,
 иначе возможна потеря данных индексов, вплоть до полной, при деградации системы.
 
+**Ответ**
+
+### Шаг 1. Создание индексов
+
+Воспользуемся API 
+```bash
+$ curl -X PUT localhost:9200/ind-1 -H 'Content-Type: application/json' -d'{ "settings": { "number_of_shards": 1,  "number_of_replicas": 0 }}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"ind-1"}
+$ curl -X PUT localhost:9200/ind-2 -H 'Content-Type: application/json' -d'{ "settings": { "number_of_shards": 2,  "number_of_replicas": 1 }}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"ind-2"}
+$ curl -X PUT localhost:9200/ind-3 -H 'Content-Type: application/json' -d'{ "settings": { "number_of_shards": 4,  "number_of_replicas": 2 }}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"ind-3"}
+```
+
+### Шаг 2. Получение списка индексов и их статусов
+
+```bash
+$ curl -X GET 'http://localhost:9200/_cat/indices?v'
+health status index            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   .geoip_databases crEmAu7FTMm9FjPvx_VF4g   1   0         41            0     72.2mb         72.2mb
+green  open   ind-1            nUiXJptBSXOy4laYtpmNvg   1   0          0            0       226b           226b
+yellow open   ind-3            KvbAyrLPQ4GPLRc19i4Qeg   4   2          0            0       904b           904b
+yellow open   ind-2            Rod_yShJTX-ZEtU2Y9qpEQ   2   1          0            0       452b           452b
+```
+
+Дополнительно можно посмотреть индексы поподробнее
+```bash
+curl -X GET 'http://localhost:9200/_cluster/health/ind-1?pretty'
+{
+  "cluster_name" : "es_cluster",
+  "status" : "green",
+  "timed_out" : false,
+  "number_of_nodes" : 1,
+  "number_of_data_nodes" : 1,
+  "active_primary_shards" : 1,
+  "active_shards" : 1,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 0,
+  "delayed_unassigned_shards" : 0,
+  "number_of_pending_tasks" : 0,
+  "number_of_in_flight_fetch" : 0,
+  "task_max_waiting_in_queue_millis" : 0,
+  "active_shards_percent_as_number" : 100.0
+}
+```
+
+### Шаг 3. Получение состояния кластера
+
+```bash
+$ curl -XGET localhost:9200/_cluster/health/?pretty=true
+{
+  "cluster_name" : "es_cluster",
+  "status" : "yellow",
+  "timed_out" : false,
+  "number_of_nodes" : 1,
+  "number_of_data_nodes" : 1,
+  "active_primary_shards" : 8,
+  "active_shards" : 8,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 10,
+  "delayed_unassigned_shards" : 0,
+  "number_of_pending_tasks" : 0,
+  "number_of_in_flight_fetch" : 0,
+  "task_max_waiting_in_queue_millis" : 0,
+  "active_shards_percent_as_number" : 44.44444444444444
+}
+
+$ curl -X GET "localhost:9200/_cat/shards?pretty"
+ind-2            1 p STARTED     0   226b 172.17.0.2 netology_test
+ind-2            1 r UNASSIGNED
+ind-2            0 p STARTED     0   226b 172.17.0.2 netology_test
+ind-2            0 r UNASSIGNED
+ind-3            3 p STARTED     0   226b 172.17.0.2 netology_test
+ind-3            3 r UNASSIGNED
+ind-3            3 r UNASSIGNED
+ind-3            1 p STARTED     0   226b 172.17.0.2 netology_test
+ind-3            1 r UNASSIGNED
+ind-3            1 r UNASSIGNED
+ind-3            2 p STARTED     0   226b 172.17.0.2 netology_test
+ind-3            2 r UNASSIGNED
+ind-3            2 r UNASSIGNED
+ind-3            0 p STARTED     0   226b 172.17.0.2 netology_test
+ind-3            0 r UNASSIGNED
+ind-3            0 r UNASSIGNED
+.geoip_databases 0 p STARTED    41 39.5mb 172.17.0.2 netology_test
+ind-1            0 p STARTED     0   226b 172.17.0.2 netology_test
+
+$ curl -X GET "localhost:9200/_cat/nodes"
+172.17.0.2 23 95 0 0.00 0.01 0.13 cdfhilmrstw * netology_test
+```
+
+Часть индексов и кластер находится в состоянии yellow, потому что для индексов `ind-2` и `ind-3` реплики не размещены (находятся в статусе UNASSIGNED). Этого и следовало ожидать, так как размещать в кластере из 1 ноды реплики на других нодах невозможно.
+
+### Шаг 4. Удаление индексов
+
+Через API вызываем команду для удаления всех индексов, затем проверяем что ничего не осталось.
+```bash
+$ curl -XDELETE 'localhost:9200/_all'
+{"acknowledged":true}
+
+$ curl -X GET 'http://localhost:9200/_cat/indices?v'
+health status index            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   .geoip_databases crEmAu7FTMm9FjPvx_VF4g   1   0         41            0     39.5mb         39.5mb
+```
+
 ## Задача 3
 
 В данном задании вы научитесь:
