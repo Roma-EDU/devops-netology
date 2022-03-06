@@ -31,13 +31,14 @@
 ### Шаг 0*. Подготовка
 
 Уже есть готовые настроенные docker-образы от разработчиков эластика. Если они нам подходят - не мучаемся и берём их.
+Предполагается, что на машине уже стоит docker, если нет, то ставим
 
 ### Шаг 1. Пишем конфигурационный файл
 
-Конфигурационный файл для elasticsearch `elasticsearch.yml`
-Запоминаем пути, т.к. они будут использованы в Dockerfile-манифесте
-Отключаем xpack.security, иначе после запуска контейнера нужно выполнять сброс пароля и выполнять аутентификацию.
-Прописываем network.host: 0.0.0.0, чтобы можно было достучаться снаружи контейнера
+Конфигурационный файл для elasticsearch `elasticsearch.yml`:
+* Запоминаем пути, т.к. они будут использованы в Dockerfile-манифесте
+* Отключаем `xpack.security`, иначе после запуска контейнера нужно выполнять сброс пароля и выполнять аутентификацию.
+* Прописываем `network.host: 0.0.0.0`, чтобы можно было достучаться снаружи контейнера
 
 ```yml
 node:
@@ -62,27 +63,27 @@ xpack.security.transport.ssl.enabled: false
 
 ```
 FROM    centos:7
-ARG		  version=7.17.1
-ENV		  ES_HOME=/usr/share/elasticsearch ES_PATH_CONF=/usr/share/elasticsearch/config/
+ARG	version=7.17.1
+ENV	ES_HOME=/usr/share/elasticsearch ES_PATH_CONF=/usr/share/elasticsearch/config/
 
 RUN     yum update -y && \ 
         yum install wget -y && \
-		    wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$version-linux-x86_64.tar.gz && \
-		    wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$version-linux-x86_64.tar.gz.sha512 && \
-		    sha512sum --check elasticsearch-$version-linux-x86_64.tar.gz.sha512 && \
-		    tar -xzf elasticsearch-$version-linux-x86_64.tar.gz && \
-		    rm elasticsearch-$version-linux-x86_64.tar.gz -f && \
-		    rm elasticsearch-$version-linux-x86_64.tar.gz.sha512 -f && \
-		    mv elasticsearch-$version $ES_HOME
+	wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$version-linux-x86_64.tar.gz && \
+	wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$version-linux-x86_64.tar.gz.sha512 && \
+	sha512sum --check elasticsearch-$version-linux-x86_64.tar.gz.sha512 && \
+	tar -xzf elasticsearch-$version-linux-x86_64.tar.gz && \
+	rm elasticsearch-$version-linux-x86_64.tar.gz -f && \
+	rm elasticsearch-$version-linux-x86_64.tar.gz.sha512 -f && \
+	mv elasticsearch-$version $ES_HOME
 
 COPY    elasticsearch.yml $ES_PATH_CONF/elasticsearch.yml
 
 RUN     groupadd -g 1000 elasticsearch && \
-		    useradd elasticsearch -u 1000 -g 1000 && \
-		    chown -R elasticsearch:elasticsearch $ES_HOME && \
-		    mkdir /var/log/elasticsearch && \
-		    chmod 777 /var/log/elasticsearch && \
-		    chmod 777 /var/lib/
+	useradd elasticsearch -u 1000 -g 1000 && \
+	chown -R elasticsearch:elasticsearch $ES_HOME && \
+	mkdir /var/log/elasticsearch && \
+	chmod 777 /var/log/elasticsearch && \
+	chmod 777 /var/lib/
 
 USER    elasticsearch
 
