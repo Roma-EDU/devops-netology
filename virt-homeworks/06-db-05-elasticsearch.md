@@ -318,3 +318,88 @@ green  open   .geoip_databases crEmAu7FTMm9FjPvx_VF4g   1   0         41        
 
 Подсказки:
 - возможно вам понадобится доработать `elasticsearch.yml` в части директивы `path.repo` и перезапустить `elasticsearch`
+
+**Ответ**
+
+### Шаг 1. Создание репозитория бэкапов
+
+Воспользуемся API 
+```bash
+$ curl -X POST localhost:9200/_snapshot/netology_backup?pretty -H 'Content-Type: application/json' -d'{"type": "fs", "settings": { "location":"/usr/share/elasticsearch/snapshots" }}'
+{
+  "acknowledged" : true
+}
+
+$ curl localhost:9200/_snapshot/netology_backup?pretty
+{
+  "netology_backup" : {
+    "type" : "fs",
+    "settings" : {
+      "location" : "/usr/share/elasticsearch/snapshots"
+    }
+  }
+}
+```
+
+### Шаг 2. Добавляем новый индекс
+
+```bash
+$  curl -X PUT localhost:9200/test -H 'Content-Type: application/json' -d'{ "settings": { "number_of_shards": 1,  "number_of_replicas": 0 }}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"test"}
+
+$ curl -X GET 'http://localhost:9200/_cat/indices?v'
+health status index            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   .geoip_databases crEmAu7FTMm9FjPvx_VF4g   1   0         41            0     39.5mb         39.5mb
+green  open   test             8ugTgp3xTH-9TwAirDFAAw   1   0          0            0       226b           226b
+```
+
+### Шаг 3. Создаём snapshot
+
+С помощью API создаём бэкап, заходим в docker-контейнер и просматриваем список файлов (выход с помощью волшебной комбинации ^P^Q)
+```bash
+$ curl -X PUT localhost:9200/_snapshot/netology_backup/elasticsearch?wait_for_completion=true
+{"snapshot":{"snapshot":"elasticsearch","uuid":"fBTovmm0RESiekC2Cgl2RQ","repository":"netology_backup","version_id":7170199,"version":"7.17.1","indices":[".ds-ilm-history-5-2022.03.06-000001",".geoip_databases","test",".ds-.logs-deprecation.elasticsearch-default-2022.03.06-000001"],"data_streams":["ilm-history-5",".logs-deprecation.elasticsearch-default"],"include_global_state":true,"state":"SUCCESS","start_time":"2022-03-06T02:44:57.021Z","start_time_in_millis":1646534697021,"end_time":"2022-03-06T02:44:59.658Z","end_time_in_millis":1646534699658,"duration_in_millis":2637,"failures":[],"shards":{"total":4,"failed":0,"successful":4},"feature_states":[{"feature_name":"geoip","indices":[".geoip_databases"]}]}}
+
+$ sudo docker exec -ti 956b1a974ae9 bash
+$ cd /usr/share/elasticsearch/snapshots
+$ ls -l
+total 48
+-rw-r--r-- 1 elasticsearch elasticsearch  1425 Mar  6 02:44 index-0
+-rw-r--r-- 1 elasticsearch elasticsearch     8 Mar  6 02:44 index.latest
+drwxr-xr-x 6 elasticsearch elasticsearch  4096 Mar  6 02:44 indices
+-rw-r--r-- 1 elasticsearch elasticsearch 29277 Mar  6 02:44 meta-fBTovmm0RESiekC2Cgl2RQ.dat
+-rw-r--r-- 1 elasticsearch elasticsearch   712 Mar  6 02:44 snap-fBTovmm0RESiekC2Cgl2RQ.dat
+$ read escape sequence
+```
+
+### Шаг 4. Удаляем старый индекс и добавляем новый
+
+```bash
+$ curl -X DELETE 'http://localhost:9200/test?pretty'
+{
+  "acknowledged" : true
+}
+$ curl -X PUT localhost:9200/test-2 -H 'Content-Type: application/json' -d'{ "settings": { "number_of_shards": 1,  "number_of_replicas": 0 }}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"test-2"}
+
+$ curl -X GET 'http://localhost:9200/_cat/indices?v'
+health status index            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   .geoip_databases crEmAu7FTMm9FjPvx_VF4g   1   0         41            0     39.5mb         39.5mb
+green  open   test-2           GJL2EbDVRJi1hPykZF6u_w   1   0          0            0       226b           226b
+```
+
+### Шаг 5. Восстанавливаем данные из snapshot
+
+Из-за того, что в этой версии elasticsearch системный индекс `.geoip_databases` блокирует восстановление, явно укажем, какие индексы хотим восстановить "indices": "test"
+```bash
+$ curl -X POST localhost:9200/_snapshot/netology_backup/elasticsearch/_restore?pretty -H 'Content-Type: application/json' -d'{"indices": "test"}'
+{
+  "accepted" : true
+}
+
+$ curl -X GET 'http://localhost:9200/_cat/indices?v'
+health status index            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   .geoip_databases crEmAu7FTMm9FjPvx_VF4g   1   0         41            0     39.5mb         39.5mb
+green  open   test-2           GJL2EbDVRJi1hPykZF6u_w   1   0          0            0       226b           226b
+green  open   test             Necuh-16R7-vtcWnVslyWw   1   0          0            0       226b           226b
+```
