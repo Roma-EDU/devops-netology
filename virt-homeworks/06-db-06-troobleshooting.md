@@ -94,4 +94,9 @@ InterfaceError: (InterfaceError) 2013: Lost connection to MySQL server during qu
 
 ### Шаг 1. Поиск решения проблемы
 
+Скорее всего не осталось свободной памяти. В этом случае Linux убирает сторонние процессы, чтобы самому продолжить работать.
 
+Предложения:
+* Добавить памяти (её много не бывает :))
+* Проверить конфигурацию / ограничить потребление ресурсов, см. в документации [19.4. Потребление ресурсов](https://postgrespro.ru/docs/postgresql/12/runtime-config-resource)
+* Настройки на сервере - можно почитать в статье [Настраиваем Out-Of-Memory Killer в Linux для PostgreSQL](https://habr.com/ru/company/southbridge/blog/464245/)
