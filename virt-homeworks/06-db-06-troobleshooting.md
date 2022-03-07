@@ -100,3 +100,8 @@ InterfaceError: (InterfaceError) 2013: Lost connection to MySQL server during qu
 * Добавить памяти (её много не бывает :))
 * Проверить конфигурацию / ограничить потребление ресурсов, см. в документации [19.4. Потребление ресурсов](https://postgrespro.ru/docs/postgresql/12/runtime-config-resource)
 * Настройки на сервере - можно почитать в статье [Настраиваем Out-Of-Memory Killer в Linux для PostgreSQL](https://habr.com/ru/company/southbridge/blog/464245/)
+
+**Update 1**
+
+Вариант с настройками Postgres: проверить `shared_buffers`, `temp_buffers`, `max_prepared_transactions` и все `*work_mem`. Если значения слишком большие и этому нет обоснования - уменьшить.
+Вариант с сервером: я бы начал с параметров `$ echo 2 > /proc/sys/vm/overcommit_memory` и подходящим процентом `overcommit_ratio`. 
