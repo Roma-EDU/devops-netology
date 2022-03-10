@@ -90,3 +90,56 @@ on linux_amd64
 
 В виде результата этой задачи приложите вывод `--version` двух версий терраформа доступных на вашем компьютере 
 или виртуальной машине.
+
+**Ответ**
+
+### Шаг 0. Подготовка
+
+1. Находим на [сайте](https://releases.hashicorp.com/terraform/) нужную версию терраформа и подходящую версию, например для Ubuntu 20.04 на Intel выберем 0.15.5: https://releases.hashicorp.com/terraform/0.15.5/terraform_0.15.5_linux_amd64.zip
+2. Устанавливаем доппакеты для распаковки архива `sudo apt-get install unzip`
+3. Если будет проблема с зависанием на этапе `Processing triggers for man-db (2.9.1-1)`, то можно пересоздать индекс (тоже занимает прилично времени, но зато потом быстрее будет [подробности](https://thelinuxuser.com/fix-processing-triggers-for-man-db/))
+   ```bash
+   $ sudo rm -rf /var/cache/man/*
+   $ sudo mandb -c
+   ```
+   
+### Шаг 1. Установка альтернативной версии терраформ
+
+> **Альтернатива**: Вместо всех шагов ниже можно взять готовые решения, позволяющие устанавливать несколько версий терраформ, например [Terraform Switcher](https://github.com/warrensbox/terraform-switcher#terraform-switcher)
+
+1. Создаём папку с альтернативной версией /opt/terraform/015/
+2. Скачиваем и распаковываем в неё соответствующий архив
+3. Создаём символическую ссылку для удобного вызова (пусть будет `terraform015`)
+4. Выдаём права на исполнение
+
+```bash
+$ sudo mkdir -p /opt/terraform/015/
+$ cd /opt/terraform/015/
+$ sudo wget https://releases.hashicorp.com/terraform/0.15.5/terraform_0.15.5_linux_amd64.zip
+--2022-03-10 20:35:50--  https://releases.hashicorp.com/terraform/0.15.5/terraform_0.15.5_linux_amd64.zip
+...
+2022-03-10 20:36:02 (2.72 MB/s) - ‘terraform_0.15.5_linux_amd64.zip’ saved [33043317/33043317]
+
+$ sudo unzip terraform_0.15.5_linux_amd64.zip
+Archive:  terraform_0.15.5_linux_amd64.zip
+  inflating: terraform
+$ sudo rm terraform_0.15.5_linux_amd64.zip
+$ sudo ln -s /opt/terraform/015/terraform /usr/bin/terraform015
+$ sudo chmod ugo+x /usr/bin/terraform015
+```
+
+
+
+### Шаг 2. Проверяем версию
+
+```bash
+$ terraform015 --version
+Terraform v0.15.5
+on linux_amd64
+
+Your version of Terraform is out of date! The latest version
+is 1.1.7. You can update by downloading from https://www.terraform.io/downloads.html
+$ terraform --version
+Terraform v1.1.7
+on linux_amd64
+```
