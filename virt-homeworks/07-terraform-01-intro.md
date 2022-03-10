@@ -52,10 +52,32 @@
 
 ### Шаг 1. Установка terraform
 
-Воспользуемся официальными [рекомендациями](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started#install-terraform) разработчика
+Включаем впн :(
+Воспользуемся официальными [рекомендациями](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started#install-terraform) разработчика (см. вкладку Linux)
 
 ```bash
+$ sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+Hit:1 http://archive.ubuntu.com/ubuntu focal InRelease
+...
+$ curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+OK
+$ sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+Hit:1 http://archive.ubuntu.com/ubuntu focal InRelease
+...
+Reading package lists... Done
+$ sudo apt-get update && sudo apt-get install terraform
+Hit:1 http://archive.ubuntu.com/ubuntu focal InRelease
+...
+Unpacking terraform (1.1.7) ...
+Setting up terraform (1.1.7) ...
+```
 
+### Шаг 2. Проверяем версию
+
+```bash
+$ terraform --version
+Terraform v1.1.7
+on linux_amd64
 ```
 
 
