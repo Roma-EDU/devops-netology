@@ -175,6 +175,12 @@ Your profile default Compute zone has been set to 'ru-central1-a'.
 
 С помощью документации https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart и https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/compute_image заполняем необходимые параметры terraform
 
+Папка с конфигурацией terraform https://github.com/Roma-EDU/devops-netology/tree/master/virt-homeworks/07-terraform-02-syntax
+Образ можно выбрать из списка, предоставляемого YC, найти на их маркете или создать свой с помощью [Packer](https://www.packer.io)
+
+**ВОПРОСЫ**
+1. У меня не получилось указать выбор последнего доступного образа, как требуется в пункте 4 этой задачи. При этом у образа есть `family_id`. Можно ли им как-то воспользоваться применительно к этой задаче?
+
 ### Шаг 2. Генерируем ключи для работы
 
 Формируем `key.json` с учётными данными от сервисного аккаунта и ssh-ключи для захода на созданные виртуалки
