@@ -139,40 +139,183 @@ Your profile default Compute zone has been set to 'ru-central1-a'.
 
 ## Задача 2. Создание aws ec2 или yandex_compute_instance через терраформ. 
 
-1. В каталоге `terraform` вашего основного репозитория, который был создан в начале курсе, создайте файл `main.tf` и `versions.tf`.
-2. Зарегистрируйте провайдер 
-   1. для [aws](https://registry.terraform.io/providers/hashicorp/aws/latest/docs). В файл `main.tf` добавьте
-   блок `provider`, а в `versions.tf` блок `terraform` с вложенным блоком `required_providers`. Укажите любой выбранный вами регион 
-   внутри блока `provider`.
-   2. либо для [yandex.cloud](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs). Подробную инструкцию можно найти 
-   [здесь](https://cloud.yandex.ru/docs/solutions/infrastructure-management/terraform-quickstart).
-3. Внимание! В гит репозиторий нельзя пушить ваши личные ключи доступа к аккаунту. Поэтому в предыдущем задании мы указывали
-их в виде переменных окружения. 
-4. В файле `main.tf` воспользуйтесь блоком `data "aws_ami` для поиска ami образа последнего Ubuntu.  
-5. В файле `main.tf` создайте рессурс 
-   1. либо [ec2 instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance).
-   Постарайтесь указать как можно больше параметров для его определения. Минимальный набор параметров указан в первом блоке 
-   `Example Usage`, но желательно, указать большее количество параметров.
-   2. либо [yandex_compute_image](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/compute_image).
-6. Также в случае использования aws:
-   1. Добавьте data-блоки `aws_caller_identity` и `aws_region`.
-   2. В файл `outputs.tf` поместить блоки `output` с данными об используемых в данный момент: 
-       * AWS account ID,
-       * AWS user ID,
-       * AWS регион, который используется в данный момент, 
-       * Приватный IP ec2 инстансы,
-       * Идентификатор подсети в которой создан инстанс.  
-7. Если вы выполнили первый пункт, то добейтесь того, что бы команда `terraform plan` выполнялась без ошибок. 
+>1. В каталоге `terraform` вашего основного репозитория, который был создан в начале курсе, создайте файл `main.tf` и `versions.tf`.
+>2. Зарегистрируйте провайдер 
+>   1. для [aws](https://registry.terraform.io/providers/hashicorp/aws/latest/docs). В файл `main.tf` добавьте
+>   блок `provider`, а в `versions.tf` блок `terraform` с вложенным блоком `required_providers`. Укажите любой выбранный вами регион 
+>   внутри блока `provider`.
+>   2. либо для [yandex.cloud](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs). Подробную инструкцию можно найти 
+>   [здесь](https://cloud.yandex.ru/docs/solutions/infrastructure-management/terraform-quickstart).
+>3. Внимание! В гит репозиторий нельзя пушить ваши личные ключи доступа к аккаунту. Поэтому в предыдущем задании мы указывали
+>их в виде переменных окружения. 
+>4. В файле `main.tf` воспользуйтесь блоком `data "aws_ami` для поиска ami образа последнего Ubuntu.  
+>5. В файле `main.tf` создайте рессурс 
+>   1. либо [ec2 instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance).
+>   Постарайтесь указать как можно больше параметров для его определения. Минимальный набор параметров указан в первом блоке 
+>   `Example Usage`, но желательно, указать большее количество параметров.
+>   2. либо [yandex_compute_image](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/compute_image).
+>6. Также в случае использования aws:
+>   1. Добавьте data-блоки `aws_caller_identity` и `aws_region`.
+>   2. В файл `outputs.tf` поместить блоки `output` с данными об используемых в данный момент: 
+>       * AWS account ID,
+>       * AWS user ID,
+>       * AWS регион, который используется в данный момент, 
+>       * Приватный IP ec2 инстансы,
+>       * Идентификатор подсети в которой создан инстанс.  
+>7. Если вы выполнили первый пункт, то добейтесь того, что бы команда `terraform plan` выполнялась без ошибок. 
+>
+>
+>В качестве результата задания предоставьте:
+>1. Ответ на вопрос: при помощи какого инструмента (из разобранных на прошлом занятии) можно создать свой образ ami?
+>1. Ссылку на репозиторий с исходной конфигурацией терраформа.  
 
+**Ответ**
 
-В качестве результата задания предоставьте:
-1. Ответ на вопрос: при помощи какого инструмента (из разобранных на прошлом занятии) можно создать свой образ ami?
-1. Ссылку на репозиторий с исходной конфигурацией терраформа.  
- 
----
+### Шаг 1. Создаём файлы для terraform
 
-### Как cдавать задание
+С помощью документации https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart и https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/compute_image заполняем необходимые параметры terraform
 
-Выполненное домашнее задание пришлите ссылкой на .md-файл в вашем репозитории.
+### Шаг 2. Генерируем ключи для работы
 
----
+Формируем `key.json` с учётными данными от сервисного аккаунта и ssh-ключи для захода на созданные виртуалки
+
+```bash
+$ cd /vagrant/07-terraform-02-syntax
+$ yc iam key create --service-account-name netology-service --output key.json
+id: aje06gfgf4ouo44slbvg
+service_account_id: ajebf9omlm5sed0thvci
+created_at: "2022-03-26T13:28:26.669789945Z"
+key_algorithm: RSA_2048
+
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/vagrant/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/vagrant/.ssh/id_rsa
+Your public key has been saved in /home/vagrant/.ssh/id_rsa.pub
+The key fingerprint is:
+...
+```
+
+### Шаг 3. Запускаем terraform
+
+```bash
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding latest version of yandex-cloud/yandex...
+- Installing yandex-cloud/yandex v0.72.0...
+- Installed yandex-cloud/yandex v0.72.0 (self-signed, key ID E40F590B50BB8E40)
+
+Partner and community providers are signed by their developers.
+If you'd like to know more about provider signing, you can read about it here:
+https://www.terraform.io/docs/cli/plugins/signing.html
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+$ terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated
+with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # yandex_compute_instance.vm-1 will be created
+  + resource "yandex_compute_instance" "vm-1" {
+      + allow_stopping_for_update = true
+      + created_at                = (known after apply)
+      + folder_id                 = (known after apply)
+      + fqdn                      = (known after apply)
+      + hostname                  = "vm-1.netology.yc"
+      + id                        = (known after apply)
+...
+Plan: 4 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + external_ip_address_vm_1 = (known after apply)
+  + external_ip_address_vm_2 = (known after apply)
+  + internal_ip_address_vm_1 = "192.168.10.11"
+  + internal_ip_address_vm_2 = "192.168.10.12"
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions
+if you run "terraform apply" now.
+
+$ terraform apply -auto-approve=true
+...
+yandex_compute_instance.vm-1: Still creating... [20s elapsed]
+yandex_compute_instance.vm-2: Creation complete after 23s [id=fhm1u1c4gn5q6ietjbdn]
+yandex_compute_instance.vm-1: Creation complete after 25s [id=fhmbc09cn41td9c8cm3c]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+external_ip_address_vm_1 = "51.250.68.44"
+external_ip_address_vm_2 = "51.250.71.138"
+internal_ip_address_vm_1 = "192.168.10.11"
+internal_ip_address_vm_2 = "192.168.10.12"
+```
+
+Проверяем, что доступны
+```bash
+$ ssh ubuntu@51.250.68.44
+Welcome to Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-96-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+ubuntu@vm-1:~$ exit
+logout
+Connection to 51.250.68.44 closed.
+```
+
+### Шаг 4*. Удаляем ресурсы
+
+С помощью terraform удаляем все созданные ресурсы
+```bash
+$ terraform destroy -auto-approve=true
+...
+yandex_compute_instance.vm-2: Destroying... [id=fhm1u1c4gn5q6ietjbdn]
+yandex_compute_instance.vm-1: Destroying... [id=fhmbc09cn41td9c8cm3c]
+yandex_compute_instance.vm-2: Still destroying... [id=fhm1u1c4gn5q6ietjbdn, 10s elapsed]
+yandex_compute_instance.vm-1: Still destroying... [id=fhmbc09cn41td9c8cm3c, 10s elapsed]
+yandex_compute_instance.vm-2: Destruction complete after 13s
+yandex_compute_instance.vm-1: Destruction complete after 13s
+yandex_vpc_subnet.subnet-1: Destroying... [id=e9bo46l3mujap4m0jvd4]
+yandex_vpc_subnet.subnet-1: Destruction complete after 2s
+yandex_vpc_network.network-1: Destroying... [id=enphvbgjjoihuffvr4j0]
+yandex_vpc_network.network-1: Destruction complete after 1s
+
+Destroy complete! Resources: 4 destroyed.
+```
+И не забываем удалить сервисный аккаунт
