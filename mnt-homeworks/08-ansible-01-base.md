@@ -207,7 +207,46 @@ ansible [core 2.12.4]
        localhost:
          ansible_connection: local
    ```
-5. Запустите playbook на окружении `prod.yml`. При запуске `ansible` должен запросить у вас пароль. Убедитесь что факты `some_fact` для каждого из хостов определены из верных `group_vars`.
+1. Запустите playbook на окружении `prod.yml`. При запуске `ansible` должен запросить у вас пароль. Убедитесь что факты `some_fact` для каждого из хостов определены из верных `group_vars`.
+   * Снова запустил `ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass`, убедился что появился новый хост `localhost` со значением переменной some_fact из группы all `all default fact`
+   ```bash
+   $ ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass
+   Vault password:
+   
+   PLAY [Print os facts] **************************************************************************************************
+   
+   TASK [Gathering Facts] *************************************************************************************************
+   ok: [localhost]
+   ok: [ubuntu]
+   ok: [centos7]
+   
+   TASK [Print OS] ********************************************************************************************************
+   ok: [localhost] => {
+       "msg": "Ubuntu"
+   }
+   ok: [centos7] => {
+       "msg": "CentOS"
+   }
+   ok: [ubuntu] => {
+       "msg": "Ubuntu"
+   }
+   
+   TASK [Print fact] ******************************************************************************************************
+   ok: [localhost] => {
+       "msg": "all default fact"
+   }
+   ok: [centos7] => {
+       "msg": "el default fact"
+   }
+   ok: [ubuntu] => {
+       "msg": "PaSSw0rd"
+   }
+   
+   PLAY RECAP *************************************************************************************************************
+   centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   ```
 6. Заполните `README.md` ответами на вопросы. Сделайте `git push` в ветку `master`. В ответе отправьте ссылку на ваш открытый репозиторий с изменённым `playbook` и заполненным `README.md`.
 
 ## Необязательная часть
