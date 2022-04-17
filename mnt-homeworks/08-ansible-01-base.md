@@ -263,6 +263,54 @@ ansible [core 2.12.4]
 1. Добавьте новую группу хостов `fedora`, самостоятельно придумайте для неё переменную. В качестве образа можно использовать [этот](https://hub.docker.com/r/pycontribs/fedora).
    * Не стал скачивать ещё один дистрибутив, места на ноуте мало и не вижу отличий от предыдущих ubuntu и centos хостов, разве что по умолчанию переменная `some_fact` будет из группы all
 1. Напишите скрипт на bash: автоматизируйте поднятие необходимых контейнеров, запуск ansible-playbook и остановку контейнеров.
-   * Даже не знаю, как подступиться. Было бы здорово на лекции глянуть маленький примерчик с вводом пароля
+   * Добавил скрипт [08-ansible-01-base/script.sh](https://github.com/Roma-EDU/devops-netology/blob/master/mnt-homeworks/08-ansible-01-base/script.sh)
+   * Запускается от root
+   ```bash
+   $ bash script.sh
+   Launching docker containers...
+   ubuntu
+   centos7
+   Launching ansible playbook...
+   Vault password:
+   
+   PLAY [Print os facts] **************************************************************************************************
+   
+   TASK [Gathering Facts] *************************************************************************************************
+   ok: [localhost]
+   ok: [ubuntu]
+   ok: [centos7]
+   
+   TASK [Print OS] ********************************************************************************************************
+   ok: [localhost] => {
+       "msg": "Ubuntu"
+   }
+   ok: [centos7] => {
+       "msg": "CentOS"
+   }
+   ok: [ubuntu] => {
+       "msg": "Ubuntu"
+   }
+   
+   TASK [Print fact] ******************************************************************************************************
+   ok: [localhost] => {
+       "msg": "all default fact"
+   }
+   ok: [centos7] => {
+       "msg": "el default fact"
+   }
+   ok: [ubuntu] => {
+       "msg": "PaSSw0rd"
+   }
+   
+   PLAY RECAP *************************************************************************************************************
+   centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+   
+   Stopping docker containers...
+   ubuntu
+   centos7
+   All done!
+   ```
 1. Все изменения должны быть зафиксированы и отправлены в вашей личный репозиторий.
    * Done
