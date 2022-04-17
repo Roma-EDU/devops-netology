@@ -289,11 +289,7 @@ Terraform will perform the following actions:
       + fqdn                      = (known after apply)
       + hostname                  = (known after apply)
       + id                        = (known after apply)
-      + metadata                  = {
-          + "ssh-keys" = <<-EOT
-                ubuntu:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDxA5h6HsvBxzUtWSPLPU5Pa3S+aZIplzasNxMsZdyn4KhwGOFhaorDZR2k6nK3iKRq3zCUjnvFGB1W6sskWDGMfhStv7SxBhQvABxjt7+55rVCFxDr+fmTb6mSyVQWV6hiNZ7SyS3zwhJn8gEqg4l8BUfc5+O7yAAAiVp07xe39/JGOhZZxCLwB79PTDQBF/2kWQhmobnUOheggnuYYhJVZNHp871s8TlIRoYBRrdzrxJRF4QaeA00JYXLMD3C4ELUWNAXREmVEmCQVx+Wqtz4vvgiKppf+4qzLIh/2qjA9ag8um9NEcr9nc7mrgXWfleNmeKQVlXQ64EJ66kTO6RL6R9GfANuXAPzi3sUUSJ0FKg0gaOk3dpqkN+hJUkmG1GDDnR1dkWQBCLZcmUex2mZe4fYhND+38OAGhSjYHOINDlpf7H/JMne3j1HU+dhfM3RYhL3mZYDNJYazDjMiv+EUF1NzIK8zb30sczJAqHjYB9vO16L8OOLk8vhvFKV5w0= vagrant@ubuntu-focal
-            EOT
-        }
+      ...
       + network_acceleration_type = "standard"
       + platform_id               = "standard-v1"
       + service_account_id        = (known after apply)
@@ -355,11 +351,7 @@ Terraform will perform the following actions:
       + fqdn                      = (known after apply)
       + hostname                  = (known after apply)
       + id                        = (known after apply)
-      + metadata                  = {
-          + "ssh-keys" = <<-EOT
-                ubuntu:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDxA5h6HsvBxzUtWSPLPU5Pa3S+aZIplzasNxMsZdyn4KhwGOFhaorDZR2k6nK3iKRq3zCUjnvFGB1W6sskWDGMfhStv7SxBhQvABxjt7+55rVCFxDr+fmTb6mSyVQWV6hiNZ7SyS3zwhJn8gEqg4l8BUfc5+O7yAAAiVp07xe39/JGOhZZxCLwB79PTDQBF/2kWQhmobnUOheggnuYYhJVZNHp871s8TlIRoYBRrdzrxJRF4QaeA00JYXLMD3C4ELUWNAXREmVEmCQVx+Wqtz4vvgiKppf+4qzLIh/2qjA9ag8um9NEcr9nc7mrgXWfleNmeKQVlXQ64EJ66kTO6RL6R9GfANuXAPzi3sUUSJ0FKg0gaOk3dpqkN+hJUkmG1GDDnR1dkWQBCLZcmUex2mZe4fYhND+38OAGhSjYHOINDlpf7H/JMne3j1HU+dhfM3RYhL3mZYDNJYazDjMiv+EUF1NzIK8zb30sczJAqHjYB9vO16L8OOLk8vhvFKV5w0= vagrant@ubuntu-focal
-            EOT
-        }
+      ...
       + network_acceleration_type = "standard"
       + platform_id               = "standard-v1"
       + service_account_id        = (known after apply)
@@ -421,11 +413,7 @@ Terraform will perform the following actions:
       + fqdn                      = (known after apply)
       + hostname                  = (known after apply)
       + id                        = (known after apply)
-      + metadata                  = {
-          + "ssh-keys" = <<-EOT
-                ubuntu:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDxA5h6HsvBxzUtWSPLPU5Pa3S+aZIplzasNxMsZdyn4KhwGOFhaorDZR2k6nK3iKRq3zCUjnvFGB1W6sskWDGMfhStv7SxBhQvABxjt7+55rVCFxDr+fmTb6mSyVQWV6hiNZ7SyS3zwhJn8gEqg4l8BUfc5+O7yAAAiVp07xe39/JGOhZZxCLwB79PTDQBF/2kWQhmobnUOheggnuYYhJVZNHp871s8TlIRoYBRrdzrxJRF4QaeA00JYXLMD3C4ELUWNAXREmVEmCQVx+Wqtz4vvgiKppf+4qzLIh/2qjA9ag8um9NEcr9nc7mrgXWfleNmeKQVlXQ64EJ66kTO6RL6R9GfANuXAPzi3sUUSJ0FKg0gaOk3dpqkN+hJUkmG1GDDnR1dkWQBCLZcmUex2mZe4fYhND+38OAGhSjYHOINDlpf7H/JMne3j1HU+dhfM3RYhL3mZYDNJYazDjMiv+EUF1NzIK8zb30sczJAqHjYB9vO16L8OOLk8vhvFKV5w0= vagrant@ubuntu-focal
-            EOT
-        }
+      ...
       + network_acceleration_type = "standard"
       + platform_id               = "standard-v1"
       + service_account_id        = (known after apply)
