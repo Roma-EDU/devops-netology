@@ -137,3 +137,29 @@ Initializing provider plugins...
 >В виде результата работы пришлите:
 >* Вывод команды `terraform workspace list`.
 >* Вывод команды `terraform plan` для воркспейса `prod`.  
+
+**Ответ**
+
+### Шаг 1. Создаём workspace
+
+Добавим два новых workspace: `prod` и `stage` (`default` трогать не надо)
+```bash
+$ terraform workspace new prod
+Created and switched to workspace "prod"!
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "terraform plan" Terraform will not see any existing state
+for this configuration.
+$ terraform workspace new stage
+Created and switched to workspace "stage"!
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "terraform plan" Terraform will not see any existing state
+for this configuration.
+$ terraform workspace list
+  default
+  prod
+* stage
+```
+P.S. Если зайти на Object Storage, то там увидим папку `env:`, внутри которой появились подпапки, соответствующие workspace, а именно `prod` и `stage`
+
