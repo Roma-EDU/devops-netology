@@ -95,29 +95,6 @@ You can install it by running the following command in your shell:
         $ yc components update
 ```
 
-### Шаг 4. Инициализируем Terraform
-
-Переходим в рабочую папку с файлами terraform, получаем ключ `key.json` от сервисного аккаунта для работы и инициализируем Terraform
-```bash
-$ cd /vagrant/07-terraform-03-basic/
-$ yc iam key create --service-account-name terraform-service-account --output key.json
-id: aje1n4v54s28o5n8r3b8
-service_account_id: ajeade9r55pfhdbd5sdj
-created_at: "2022-04-17T11:08:40.151263607Z"
-key_algorithm: RSA_2048
-$ terraform init
-
-Initializing the backend...
-
-Successfully configured the backend "s3"! Terraform will automatically
-use this backend unless the backend configuration changes.
-
-Initializing provider plugins...
-- Finding latest version of yandex-cloud/yandex...
-- Installing yandex-cloud/yandex v0.73.0...
-...
-```
-
 
 ## Задача 2. Инициализируем проект и создаем воркспейсы. 
 
@@ -140,7 +117,30 @@ Initializing provider plugins...
 
 **Ответ**
 
-### Шаг 1. Создаём workspace
+### Шаг 1. Инициализируем Terraform
+
+Переходим в рабочую папку с файлами terraform, получаем ключ `key.json` от сервисного аккаунта для работы и инициализируем Terraform
+```bash
+$ cd /vagrant/07-terraform-03-basic/
+$ yc iam key create --service-account-name terraform-service-account --output key.json
+id: aje1n4v54s28o5n8r3b8
+service_account_id: ajeade9r55pfhdbd5sdj
+created_at: "2022-04-17T11:08:40.151263607Z"
+key_algorithm: RSA_2048
+$ terraform init
+
+Initializing the backend...
+
+Successfully configured the backend "s3"! Terraform will automatically
+use this backend unless the backend configuration changes.
+
+Initializing provider plugins...
+- Finding latest version of yandex-cloud/yandex...
+- Installing yandex-cloud/yandex v0.73.0...
+...
+```
+
+### Шаг 2. Создаём workspace
 
 Добавим два новых workspace: `prod` и `stage` (`default` трогать не надо)
 ```bash
@@ -162,4 +162,385 @@ $ terraform workspace list
 * stage
 ```
 P.S. Если зайти на Object Storage, то там увидим папку `env:`, внутри которой появились подпапки, соответствующие workspace, а именно `prod` и `stage`
+
+
+### Шаг 3. Добавляем зависимость типа инстанса от workspace
+
+В отличии от AWS, где характеристики машины определяется типом инстанса (t2.micro, t3.large), на YC можно просто указать требуемое количество ядер и памяти.
+Поэтому в конфигурации именно эти параметры будут зависеть от workspace
+
+Добавляем объект locals, в котором двумя способами будут описаны зависимости
+```tf
+locals {
+  is_prod = terraform.workspace == "prod"
+  memory_map = {
+    default  = 4
+    prod     = 8
+    stage    = 2
+  }
+}
+```
+
+И прописываем зависимость характеристик машины
+```tf
+resource "yandex_compute_instance" "site-vm" {
+  ...
+  resources {
+    cores  = local.is_prod ? 4 : 2
+    memory = local.memory_map[terraform.workspace]
+  }
+  ...
+```
+
+
+### Шаг 4. Добавляем зависимость количества инстансов через count
+
+Добавим задание `count`, чтобы для `stage` поднимался один инстанс, а для `prod` - сразу два.
+```tf
+resource "yandex_compute_instance" "site-vm" {
+  zone      = var.yandex_zone
+  allow_stopping_for_update = true
+  count     = local.is_prod ? 2 : 1
+  ...
+```
+
+И раз теперь поднимается несколько экземляров, отредактируем output на использование массива значений
+```tf
+output "internal_ip_address_site-vm" {
+  value = [yandex_compute_instance.site-vm.*.network_interface.0.ip_address]
+}
+
+output "external_ip_address_site-vm" {
+  value = [yandex_compute_instance.site-vm.*.network_interface.0.nat_ip_address]
+}
+```
+
+
+### Шаг 5. Добавляем зависимость количества инстансов через for_each
+
+Добавим поднятие 1 инстанса "мониторинга" для `prod` и 0 для `stage`. 
+Для этого в locals добавим переменную `monitoring_map`, представляющий массив уникальных строк и новый ресурс "monitoring-vm", создаваемый через for_each  = toset( local.monitoring_map[terraform.workspace] )
+
+```tf
+locals {
+  is_prod = terraform.workspace == "prod"
+  memory_map = {
+    default  = 4
+    prod     = 8
+    stage    = 2
+  }
+  monitoring_map = {
+    prod     = ["m1"]
+    stage    = []
+  }
+}
+
+...
+
+resource "yandex_compute_instance" "monitoring-vm" {
+  for_each  = toset( local.monitoring_map[terraform.workspace] )
+  zone      = var.yandex_zone
+  allow_stopping_for_update = true
+  
+  resources {
+    cores  = 2
+    memory = 2
+  }
+
+  ...
+```
+
+### Шаг 6. Параметры жизненного цикла
+
+Что бы при изменении настроек не возникло ситуации, когда не будет ни одного работающего инстанса "сайта", добавим параметр жизненного цикла `create_before_destroy = true`
+
+```tf
+resource "yandex_compute_instance" "site-vm" {
+  ...
+  lifecycle {
+    create_before_destroy = true
+  }
+  ...
+}
+```
+
+### Шаг 7. Выполнение
+
+Переключаемся на `prod` и применяем изменения
+
+```bash
+$ terraform workspace select prod
+Switched to workspace "prod".
+$ terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # yandex_compute_instance.monitoring-vm["m1"] will be created
+  + resource "yandex_compute_instance" "monitoring-vm" {
+      + allow_stopping_for_update = true
+      + created_at                = (known after apply)
+      + folder_id                 = (known after apply)
+      + fqdn                      = (known after apply)
+      + hostname                  = (known after apply)
+      + id                        = (known after apply)
+      + metadata                  = {
+          + "ssh-keys" = <<-EOT
+                ubuntu:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDxA5h6HsvBxzUtWSPLPU5Pa3S+aZIplzasNxMsZdyn4KhwGOFhaorDZR2k6nK3iKRq3zCUjnvFGB1W6sskWDGMfhStv7SxBhQvABxjt7+55rVCFxDr+fmTb6mSyVQWV6hiNZ7SyS3zwhJn8gEqg4l8BUfc5+O7yAAAiVp07xe39/JGOhZZxCLwB79PTDQBF/2kWQhmobnUOheggnuYYhJVZNHp871s8TlIRoYBRrdzrxJRF4QaeA00JYXLMD3C4ELUWNAXREmVEmCQVx+Wqtz4vvgiKppf+4qzLIh/2qjA9ag8um9NEcr9nc7mrgXWfleNmeKQVlXQ64EJ66kTO6RL6R9GfANuXAPzi3sUUSJ0FKg0gaOk3dpqkN+hJUkmG1GDDnR1dkWQBCLZcmUex2mZe4fYhND+38OAGhSjYHOINDlpf7H/JMne3j1HU+dhfM3RYhL3mZYDNJYazDjMiv+EUF1NzIK8zb30sczJAqHjYB9vO16L8OOLk8vhvFKV5w0= vagrant@ubuntu-focal
+            EOT
+        }
+      + network_acceleration_type = "standard"
+      + platform_id               = "standard-v1"
+      + service_account_id        = (known after apply)
+      + status                    = (known after apply)
+      + zone                      = "ru-central1-a"
+
+      + boot_disk {
+          + auto_delete = true
+          + device_name = (known after apply)
+          + disk_id     = (known after apply)
+          + mode        = (known after apply)
+
+          + initialize_params {
+              + block_size  = (known after apply)
+              + description = (known after apply)
+              + image_id    = "fd8mfc6omiki5govl68h"
+              + name        = (known after apply)
+              + size        = 10
+              + snapshot_id = (known after apply)
+              + type        = "network-nvme"
+            }
+        }
+
+      + network_interface {
+          + index              = (known after apply)
+          + ip_address         = (known after apply)
+          + ipv4               = true
+          + ipv6               = (known after apply)
+          + ipv6_address       = (known after apply)
+          + mac_address        = (known after apply)
+          + nat                = true
+          + nat_ip_address     = (known after apply)
+          + nat_ip_version     = (known after apply)
+          + security_group_ids = (known after apply)
+          + subnet_id          = (known after apply)
+        }
+
+      + placement_policy {
+          + host_affinity_rules = (known after apply)
+          + placement_group_id  = (known after apply)
+        }
+
+      + resources {
+          + core_fraction = 100
+          + cores         = 1
+          + memory        = 2
+        }
+
+      + scheduling_policy {
+          + preemptible = (known after apply)
+        }
+    }
+
+  # yandex_compute_instance.site-vm[0] will be created
+  + resource "yandex_compute_instance" "site-vm" {
+      + allow_stopping_for_update = true
+      + created_at                = (known after apply)
+      + folder_id                 = (known after apply)
+      + fqdn                      = (known after apply)
+      + hostname                  = (known after apply)
+      + id                        = (known after apply)
+      + metadata                  = {
+          + "ssh-keys" = <<-EOT
+                ubuntu:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDxA5h6HsvBxzUtWSPLPU5Pa3S+aZIplzasNxMsZdyn4KhwGOFhaorDZR2k6nK3iKRq3zCUjnvFGB1W6sskWDGMfhStv7SxBhQvABxjt7+55rVCFxDr+fmTb6mSyVQWV6hiNZ7SyS3zwhJn8gEqg4l8BUfc5+O7yAAAiVp07xe39/JGOhZZxCLwB79PTDQBF/2kWQhmobnUOheggnuYYhJVZNHp871s8TlIRoYBRrdzrxJRF4QaeA00JYXLMD3C4ELUWNAXREmVEmCQVx+Wqtz4vvgiKppf+4qzLIh/2qjA9ag8um9NEcr9nc7mrgXWfleNmeKQVlXQ64EJ66kTO6RL6R9GfANuXAPzi3sUUSJ0FKg0gaOk3dpqkN+hJUkmG1GDDnR1dkWQBCLZcmUex2mZe4fYhND+38OAGhSjYHOINDlpf7H/JMne3j1HU+dhfM3RYhL3mZYDNJYazDjMiv+EUF1NzIK8zb30sczJAqHjYB9vO16L8OOLk8vhvFKV5w0= vagrant@ubuntu-focal
+            EOT
+        }
+      + network_acceleration_type = "standard"
+      + platform_id               = "standard-v1"
+      + service_account_id        = (known after apply)
+      + status                    = (known after apply)
+      + zone                      = "ru-central1-a"
+
+      + boot_disk {
+          + auto_delete = true
+          + device_name = (known after apply)
+          + disk_id     = (known after apply)
+          + mode        = (known after apply)
+
+          + initialize_params {
+              + block_size  = (known after apply)
+              + description = (known after apply)
+              + image_id    = "fd8mfc6omiki5govl68h"
+              + name        = (known after apply)
+              + size        = 20
+              + snapshot_id = (known after apply)
+              + type        = "network-nvme"
+            }
+        }
+
+      + network_interface {
+          + index              = (known after apply)
+          + ip_address         = (known after apply)
+          + ipv4               = true
+          + ipv6               = (known after apply)
+          + ipv6_address       = (known after apply)
+          + mac_address        = (known after apply)
+          + nat                = true
+          + nat_ip_address     = (known after apply)
+          + nat_ip_version     = (known after apply)
+          + security_group_ids = (known after apply)
+          + subnet_id          = (known after apply)
+        }
+
+      + placement_policy {
+          + host_affinity_rules = (known after apply)
+          + placement_group_id  = (known after apply)
+        }
+
+      + resources {
+          + core_fraction = 100
+          + cores         = 4
+          + memory        = 8
+        }
+
+      + scheduling_policy {
+          + preemptible = (known after apply)
+        }
+    }
+
+  # yandex_compute_instance.site-vm[1] will be created
+  + resource "yandex_compute_instance" "site-vm" {
+      + allow_stopping_for_update = true
+      + created_at                = (known after apply)
+      + folder_id                 = (known after apply)
+      + fqdn                      = (known after apply)
+      + hostname                  = (known after apply)
+      + id                        = (known after apply)
+      + metadata                  = {
+          + "ssh-keys" = <<-EOT
+                ubuntu:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDxA5h6HsvBxzUtWSPLPU5Pa3S+aZIplzasNxMsZdyn4KhwGOFhaorDZR2k6nK3iKRq3zCUjnvFGB1W6sskWDGMfhStv7SxBhQvABxjt7+55rVCFxDr+fmTb6mSyVQWV6hiNZ7SyS3zwhJn8gEqg4l8BUfc5+O7yAAAiVp07xe39/JGOhZZxCLwB79PTDQBF/2kWQhmobnUOheggnuYYhJVZNHp871s8TlIRoYBRrdzrxJRF4QaeA00JYXLMD3C4ELUWNAXREmVEmCQVx+Wqtz4vvgiKppf+4qzLIh/2qjA9ag8um9NEcr9nc7mrgXWfleNmeKQVlXQ64EJ66kTO6RL6R9GfANuXAPzi3sUUSJ0FKg0gaOk3dpqkN+hJUkmG1GDDnR1dkWQBCLZcmUex2mZe4fYhND+38OAGhSjYHOINDlpf7H/JMne3j1HU+dhfM3RYhL3mZYDNJYazDjMiv+EUF1NzIK8zb30sczJAqHjYB9vO16L8OOLk8vhvFKV5w0= vagrant@ubuntu-focal
+            EOT
+        }
+      + network_acceleration_type = "standard"
+      + platform_id               = "standard-v1"
+      + service_account_id        = (known after apply)
+      + status                    = (known after apply)
+      + zone                      = "ru-central1-a"
+
+      + boot_disk {
+          + auto_delete = true
+          + device_name = (known after apply)
+          + disk_id     = (known after apply)
+          + mode        = (known after apply)
+
+          + initialize_params {
+              + block_size  = (known after apply)
+              + description = (known after apply)
+              + image_id    = "fd8mfc6omiki5govl68h"
+              + name        = (known after apply)
+              + size        = 20
+              + snapshot_id = (known after apply)
+              + type        = "network-nvme"
+            }
+        }
+
+      + network_interface {
+          + index              = (known after apply)
+          + ip_address         = (known after apply)
+          + ipv4               = true
+          + ipv6               = (known after apply)
+          + ipv6_address       = (known after apply)
+          + mac_address        = (known after apply)
+          + nat                = true
+          + nat_ip_address     = (known after apply)
+          + nat_ip_version     = (known after apply)
+          + security_group_ids = (known after apply)
+          + subnet_id          = (known after apply)
+        }
+
+      + placement_policy {
+          + host_affinity_rules = (known after apply)
+          + placement_group_id  = (known after apply)
+        }
+
+      + resources {
+          + core_fraction = 100
+          + cores         = 4
+          + memory        = 8
+        }
+
+      + scheduling_policy {
+          + preemptible = (known after apply)
+        }
+    }
+
+  # yandex_vpc_network.network-1 will be created
+  + resource "yandex_vpc_network" "network-1" {
+      + created_at                = (known after apply)
+      + default_security_group_id = (known after apply)
+      + folder_id                 = (known after apply)
+      + id                        = (known after apply)
+      + labels                    = (known after apply)
+      + name                      = "network1"
+      + subnet_ids                = (known after apply)
+    }
+
+  # yandex_vpc_subnet.subnet-1 will be created
+  + resource "yandex_vpc_subnet" "subnet-1" {
+      + created_at     = (known after apply)
+      + folder_id      = (known after apply)
+      + id             = (known after apply)
+      + labels         = (known after apply)
+      + name           = "subnet1"
+      + network_id     = (known after apply)
+      + v4_cidr_blocks = [
+          + "192.168.10.0/24",
+        ]
+      + v6_cidr_blocks = (known after apply)
+      + zone           = "ru-central1-a"
+    }
+
+Plan: 5 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + external_ip_address_site-vm = [
+      + [
+          + (known after apply),
+          + (known after apply),
+        ],
+    ]
+  + internal_ip_address_site-vm = [
+      + [
+          + (known after apply),
+          + (known after apply),
+        ],
+    ]
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if
+you run "terraform apply" now.
+
+$ terraform apply -auto-approve
+...
+Apply complete! Resources: 3 added, 0 changed, 2 destroyed.
+
+Outputs:
+
+external_ip_address_site-vm = [
+  [
+    "51.250.82.12",
+    "51.250.82.3",
+  ],
+]
+internal_ip_address_site-vm = [
+  [
+    "192.168.10.16",
+    "192.168.10.34",
+  ],
+]
+```
 
