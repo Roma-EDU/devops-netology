@@ -1,9 +1,10 @@
 # 8.2. Работа с Playbook
 
+**Ответ**: ссылка на [ветку в другом репозитории](https://github.com/Roma-EDU/ansible-netology/tree/08-ansible-02-playbook)
+
 ## Подготовка к выполнению
 
 - [x] Создайте свой собственный (или используйте старый) публичный репозиторий на github с произвольным именем.
-   * **Ответ**: добавил репозиторий [ansible-netology](https://github.com/Roma-EDU/ansible-netology)
 - [x] Скачайте [playbook](https://github.com/netology-code/mnt-homeworks/tree/MNT-13/08-ansible-02-playbook/playbook) из репозитория 
 с домашним заданием и перенесите его в свой репозиторий.
 - [x] Подготовьте хосты в соответствии с группами из предподготовленного playbook.
@@ -55,7 +56,7 @@ key_algorithm: RSA_2048
 
 ### Шаг 2. Добавляем конфигурацию терраформ для быстрого разворачивания (и сворачивания) инфрастурктуры
 
-- Сами файлы лежат в репозитории в папке [terraform]()
+- Сами файлы лежат в репозитории в папке [terraform](https://github.com/Roma-EDU/ansible-netology/tree/08-ansible-02-playbook/terraform)
 - По завершении получаем IP-адреса `external_ip_address_clickhouse_01` и `external_ip_address_application_01`, которые подставим в `inventory/prod.yml`
 
 ```bash
@@ -128,4 +129,4 @@ Successfully installed ansible-compat-2.0.2 ansible-lint-6.0.2 bracex-2.2.1 comm
 9. Подготовьте README.md файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
    * **Ответ**: подготовил
 10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-02-playbook` на фиксирующий коммит, в ответ предоставьте ссылку на него.
-    * **Ответ**: Ссылка на [коммит]()
+    * **Ответ**: Ссылка на [ветку](https://github.com/Roma-EDU/ansible-netology/tree/08-ansible-02-playbook)
