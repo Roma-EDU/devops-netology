@@ -53,6 +53,46 @@ created_at: "2022-05-02T20:22:29.841583734Z"
 key_algorithm: RSA_2048
 ```
 
+### Шаг 2. Добавляем конфигурацию терраформ для быстрого разворачивания (и сворачивания) инфрастурктуры
+
+- Сами файлы лежат в репозитории в папке [terraform]()
+- По завершении получаем IP-адреса `external_ip_address_clickhouse_01` и `external_ip_address_application_01`, которые подставим в `inventory/prod.yml`
+
+```bash
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding latest version of yandex-cloud/yandex...
+- Installing yandex-cloud/yandex v0.74.0...
+- Installed yandex-cloud/yandex v0.74.0 (self-signed, key ID E40F590B50BB8E40)
+...
+Terraform has been successfully initialized!
+...
+$ terraform plan
+...
+$ terraform apply -auto-approve
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+
+Terraform will perform the following actions:
+...
+Apply complete! Resources: 5 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+external_ip_address_application_01 = "51.250.82.119"
+external_ip_address_clickhouse_01 = "51.250.2.168"
+external_ip_address_lighthouse_01 = "51.250.1.244"
+internal_ip_address_application_01 = "192.168.10.21"
+internal_ip_address_clickhouse_01 = "192.168.10.11"
+internal_ip_address_lighthouse_01 = "192.168.10.31"
+
+```
+
 
 ## Основная часть
 
