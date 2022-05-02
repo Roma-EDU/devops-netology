@@ -93,16 +93,39 @@ internal_ip_address_lighthouse_01 = "192.168.10.31"
 
 ```
 
+### Шаг 3. Установка линтера для ansible
+
+```bash
+$ pip3 install "ansible-lint"
+Defaulting to user installation because normal site-packages is not writeable
+...
+Installing collected packages: commonmark, typing-extensions, subprocess-tee, ruamel.yaml.clib, pygments, pathspec, bracex, yamllint, wcmatch, ruamel.yaml, rich, ansible-compat, enrich, ansible-lint
+Successfully installed ansible-compat-2.0.2 ansible-lint-6.0.2 bracex-2.2.1 commonmark-0.9.1 enrich-1.2.7 pathspec-0.9.0 pygments-2.12.0 rich-12.3.0 ruamel.yaml-0.17.21 ruamel.yaml.clib-0.2.6 subprocess-tee-0.3.5 typing-extensions-4.2.0 wcmatch-8.3 yamllint-1.26.3
+```
+
 
 ## Основная часть
 
 1. Приготовьте свой собственный inventory файл `prod.yml`.
+   * **Ответ**: скопировал исходный `prod.yml`, отредактировал установку ClickHouse:
+     * Разбил скачивание дистрибутива на разные шаги (noarch и x86_64) внутри блока, чтобы не было ошибок
+     * Вынес создание базы в post_tasks (мне кажется более логичным + иначе нужно принудительно вызывать handler через `meta: flush_handlers`)
+     * Добавил ожидание на запуск службы ClickHouse
 2. Допишите playbook: нужно сделать ещё один play, который устанавливает и настраивает [vector](https://vector.dev).
+   * **Ответ**: добавил новый play `Install Vector`
 3. При создании tasks рекомендую использовать модули: `get_url`, `template`, `unarchive`, `file`.
+   * **Ответ**: нашёл способ через rpm
 4. Tasks должны: скачать нужной версии дистрибутив, выполнить распаковку в выбранную директорию, установить vector.
+   * **Ответ**: через `get_url` скачиваем rpm и через `yum` устанавливаем его
 5. Запустите `ansible-lint site.yml` и исправьте ошибки, если они есть.
+   * **Ответ**: запустил, поправил ошибки (пробел в конце имени, полное имя модуля ansible.builtin.module_name, mode для скачиваемых файлов)
 6. Попробуйте запустить playbook на этом окружении с флагом `--check`.
+   * **Ответ**: запустил
 7. Запустите playbook на `prod.yml` окружении с флагом `--diff`. Убедитесь, что изменения на системе произведены.
+   * **Ответ**: убедился
 8. Повторно запустите playbook с флагом `--diff` и убедитесь, что playbook идемпотентен.
+   * **Ответ**: все play завершены со статусом `ok` (без `changed` и т.п.)
 9. Подготовьте README.md файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
+   * **Ответ**: подготовил
 10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-02-playbook` на фиксирующий коммит, в ответ предоставьте ссылку на него.
+    * **Ответ**: Ссылка на [коммит]()
