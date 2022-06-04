@@ -7,11 +7,24 @@
 2. Прописываем в [inventory](./infrastructure/inventory/cicd/hosts.yml) [playbook'a](./infrastructure/site.yml) созданные хосты
    * Копируем IP серверов в hosts.yml, в качестве пользователя ansible_user прописываем `centos`
 3. Добавляем в [files](./infrastructure/files/) файл со своим публичным ключом (id_rsa.pub). Если ключ называется иначе - найдите таску в плейбуке, которая использует id_rsa.pub имя и исправьте на своё
+   * Переходим в папку и копируем в неё наш публичный ключ
+     ```bash
+     $ cd /vagrant/09-ci-03-cicd/infrastructure/files/
+     $ cp ~/.ssh/id_rsa.pub id_rsa.pub
+     ```
 4. Запускаем playbook, ожидаем успешного завершения
+   * Переходим на уровень выше `cd ..` в папку с `site.yml`
+   * Запуск установки sonar `ansible-playbook -i inventory/cicd site.yml --diff` и достаточно долгое ожидание установки
+   * Потом это дело падает, видимо из-за замены пользователя при настройке sonar'а
+   * Продолжаем установку nexus с неуспешного шага `ansible-playbook -i inventory/cicd site.yml --start-at-task='Create Nexus group' --diff`
 5. Проверяем готовность Sonarqube через [браузер](http://localhost:9000)
+   * Переходим в SonarQube с помощью внешнего IP, указанного в `hosts.yml` по 9000 порту
 6. Заходим под admin\admin, меняем пароль на свой
-7.  Проверяем готовность Nexus через [бразуер](http://localhost:8081)
+   * Зашёл, пароль сменил
+7. Проверяем готовность Nexus через [бразуер](http://localhost:8081)
+   * Аналогично с помощью внешнего IP из hosts.yml заходим в Nexus по 8081 порту
 8. Подключаемся под admin\admin123, меняем пароль, сохраняем анонимный доступ
+   * Зашёл, поменял пароль в правом верхнем углу
 
 ## Знакомоство с SonarQube
 
