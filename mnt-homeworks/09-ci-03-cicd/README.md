@@ -21,24 +21,56 @@
    * Переходим в SonarQube с помощью внешнего IP, указанного в `hosts.yml` по 9000 порту
 6. Заходим под admin\admin, меняем пароль на свой
    * Зашёл, пароль сменил
-7. Проверяем готовность Nexus через [бразуер](http://localhost:8081)
+7. Проверяем готовность Nexus через [браузер](http://localhost:8081)
    * Аналогично с помощью внешнего IP из hosts.yml заходим в Nexus по 8081 порту
 8. Подключаемся под admin\admin123, меняем пароль, сохраняем анонимный доступ
    * Зашёл, поменял пароль в правом верхнем углу
 
-## Знакомоство с SonarQube
+## Знакомство с SonarQube
 
 ### Основная часть
 
 1. Создаём новый проект, название произвольное
+   * Создал проект с типом `<Manually>`, название `netology` (да, тоже не стал выдумывать ;))
 2. Скачиваем пакет sonar-scanner, который нам предлагает скачать сам sonarqube
+   * После создания было предложено перейти по [ссылке](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/) и скачать там сканер для установки на машину, где расположен код (выбрал zip-архив для Linux x64) 
 3. Делаем так, чтобы binary был доступен через вызов в shell (или меняем переменную PATH или любой другой удобный вам способ)
+   * Распаковал архив в рабочую папку
+   * Перешёл в папку с bin, добавил её в перемунную PATH: 
+   ```bash
+   $ cd /vagrant/09-ci-03-cicd//sonar/bin
+   $ export PATH=$(pwd):$PATH
+   ```
 4. Проверяем `sonar-scanner --version`
+   * Переходим в папку с кодом, проверяем версию сканера
+   ```bash
+   $ cd ../../example/
+   $ sonar-scanner --version
+   INFO: Scanner configuration file: /vagrant/09-ci-03-cicd/sonar/conf/sonar-scanner.properties
+   INFO: Project root configuration file: NONE
+   INFO: SonarScanner 4.7.0.2747
+   INFO: Java 11.0.14.1 Eclipse Adoptium (64-bit)
+   INFO: Linux 5.4.0-105-generic amd64
+   ```
 5. Запускаем анализатор против кода из директории [example](./example) с дополнительным ключом `-Dsonar.coverage.exclusions=fail.py`
+   * Запускаем анализатор (опции запуска были получены при настройке проекта для языка из группы Other + дописан ключ исключения тестов)
+   ```bash
+   $ sonar-scanner \
+   >   -Dsonar.projectKey=netology \
+   >   -Dsonar.sources=. \
+   >   -Dsonar.host.url=http://51.250.2.231:9000 \
+   >   -Dsonar.login=3bc764a77a568d22819437a2e5ab9386a2206733 \
+   >   -Dsonar.coverage.exclusions=fail.py
+   ```
 6. Смотрим результат в интерфейсе
+   * Посмотрел
 7. Исправляем ошибки, которые он выявил(включая warnings)
+   * Исправил 2 бага и 1 code smell
 8. Запускаем анализатор повторно - проверяем, что QG пройдены успешно
+   * Запустил
 9. Делаем скриншот успешного прохождения анализа, прикладываем к решению ДЗ
+   ![image](https://user-images.githubusercontent.com/77544263/172010066-00233204-5730-41f0-8058-4c46ca450967.png)
+
 
 ## Знакомство с Nexus
 
