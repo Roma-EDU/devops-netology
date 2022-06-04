@@ -101,9 +101,58 @@
 4. Проверяем `mvn --version`
 5. Забираем директорию [mvn](./mvn) с pom
 
+**Ответ**: 
+1. Скачал zip-архив по ссылке: apache-maven-3.8.5-bin.zip
+2. Распаковал, добавил в $PATH
+   ```bash
+   $ cd /vagrant/09-ci-03-cicd/apache-maven/bin
+   $ ls
+   m2.conf  mvn  mvn.cmd  mvnDebug  mvnDebug.cmd  mvnyjp
+   $ export PATH=$(pwd):$PATH
+   ```
+3. Доставил Java8 `sudo apt -y install openjdk-8-jre` (требуется для работы maven)
+4. Проверил версию
+   ```bash
+   $ java -version
+   openjdk version "1.8.0_312"
+   OpenJDK Runtime Environment (build 1.8.0_312-8u312-b07-0ubuntu1~20.04-b07)
+   OpenJDK 64-Bit Server VM (build 25.312-b07, mixed mode)
+   $ cd ../../mvn/
+   $ mvn --version
+   Apache Maven 3.8.5 (3599d3414f046de2324203b78ddcf9b5e4388aa0)
+   Maven home: /vagrant/09-ci-03-cicd/apache-maven
+   Java version: 1.8.0_312, vendor: Private Build, runtime: /usr/lib/jvm/java-8-openjdk-amd64/jre
+   Default locale: en, platform encoding: UTF-8
+   OS name: "linux", version: "5.4.0-105-generic", arch: "amd64", family: "unix"
+   ```
+5. Удалил запрет на использование http (раздел `maven-default-http-blocker` в файлике `apache-maven-<version>/conf/settings.xml`)
+
 ### Основная часть
 
 1. Меняем в `pom.xml` блок с зависимостями под наш артефакт из первого пункта задания для Nexus (java с версией 8_282)
 2. Запускаем команду `mvn package` в директории с `pom.xml`, ожидаем успешного окончания
 3. Проверяем директорию `~/.m2/repository/`, находим наш артефакт
 4. В ответе присылаем исправленный файл `pom.xml`
+
+**Ответ**: 
+1. Изменил зависимость в `pom.xml` на использование собственного репозитория Nexus (см. [pom.xml](./pom.xml))
+2. Выполнил mvn package и проверил содержимое кэша на наличие добавленнего артефакта
+```bash
+$ mvn package
+[INFO] Scanning for projects...
+[INFO]
+[INFO] --------------------< com.netology.app:simple-app >---------------------
+[INFO] Building simple-app 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+...
+[WARNING] JAR will be empty - no content was marked for inclusion!
+[INFO] Building jar: /vagrant/09-ci-03-cicd/mvn/target/simple-app-1.0-SNAPSHOT.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  29.180 s
+[INFO] Finished at: 2022-06-04T17:29:56Z
+[INFO] ------------------------------------------------------------------------
+$ ls ~/.m2/repository/netology/java/8_282/
+_remote.repositories  java-8_282-distrib.tar.gz  java-8_282-distrib.tar.gz.sha1  java-8_282.pom.lastUpdated
+```
