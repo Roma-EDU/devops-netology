@@ -86,6 +86,11 @@
 3. Проверяем, что все файлы загрузились успешно
 4. В ответе присылаем файл `maven-metadata.xml` для этого артефекта
 
+**Ответ**
+Через кнопку Upload (появляется слева после логина) залил в репозиторий `maven-release` (maven-public недоступен, но артефакт сам туда попадает из release) файлы. Файл [netology/java/maven-metadata.xml](./maven-metadata.xml) приложил
+![image](https://user-images.githubusercontent.com/77544263/172013870-7ff1abd5-f352-4d27-93e5-8e9c364db79f.png)
+
+
 ### Знакомство с Maven
 
 ### Подготовка к выполнению
