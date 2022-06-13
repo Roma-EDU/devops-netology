@@ -1,5 +1,7 @@
 # 8.5. Тестирование Roles
 
+Репозиторий с ролью и всеми файлами [vector-role](https://github.com/Roma-EDU/vector-role/tree/1.1.0)
+
 ## Подготовка к выполнению
 >1. Установите molecule: `pip3 install "molecule==3.4.0"`
 >2. Соберите локальный образ на основе [Dockerfile](https://github.com/netology-code/mnt-homeworks/blob/MNT-13/08-ansible-05-testing/Dockerfile)
