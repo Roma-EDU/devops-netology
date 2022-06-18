@@ -31,6 +31,13 @@
      `ssh 51.250.95.183 java -jar /opt/jenkins_agent/agent.jar`
    * Доступность - определяет доступность агента, но не выключает его виртуалку; может быть удобно при выполнении ночью каких-то действий, но нам пока не надо 
    * И сохраняем изменения. Затем можно зайти в агента, посмотреть логи, что он успешно подключился
+10. Добавляем credentials:
+    * Dashboard -> Настроить Jenkins -> Manage credentials -> Jenkins -> Global credentials -> слева кнопка Add credentials
+    * Kind - SSH Username with private key
+    * Scope - Global (...)
+    * Username - пушить мы не будем, только скачивать, пусть будет имя vagrant_git
+    * Private key - вводим сам ключ (стянув его `cat ~/.ssh/id_rsa`)
+    * Passphrase - тоже вводим, если есть
 
 ## Основная часть
 
