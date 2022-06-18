@@ -35,7 +35,7 @@
     * Dashboard -> Настроить Jenkins -> Manage credentials -> Jenkins -> Global credentials -> слева кнопка Add credentials
     * Kind - SSH Username with private key
     * Scope - Global (...)
-    * Username - пушить мы не будем, только скачивать, пусть будет имя vagrant_git
+    * Username - пушить мы не будем, только скачивать, пусть будет имя `vagrant_git`
     * Private key - вводим сам ключ (стянув его `cat ~/.ssh/id_rsa`)
     * Passphrase - тоже вводим, если есть
 
@@ -49,6 +49,26 @@
 >6. Внести необходимые изменения, чтобы Pipeline запускал `ansible-playbook` без флагов `--check --diff`, если не установлен параметр при запуске джобы (prod_run = True), по умолчанию параметр имеет значение False и запускает прогон с флагами `--check --diff`.
 >7. Проверить работоспособность, исправить ошибки, исправленный Pipeline вложить в репозиторий в файл `ScriptedJenkinsfile`.
 >8. Отправить ссылку на репозиторий с ролью и Declarative Pipeline и Scripted Pipeline.
+
+### Ответ:
+
+1. Добавил Freestyle Job
+   * Название `vector-role` (так в момент выполнения на агенте будет создана папочка с таким же именем, а иначе при тесте не будет найдена роль)
+   * Управление исходным кодом - Git
+   * Repository URL - мой с ролью для vector: `git@github.com:Roma-EDU/vector-role.git`
+   * Credentials - из выпадашки выбрал `vagrant_git`
+   * Branches - оставил master по умолчанию
+   * Проставил флажки `Опрашивать SCM об изменениях`, `Delete workspace before build starts` и `Add timestamps to the Console Output`
+   * Сборка - один шаг с выполнением shell команды
+     ```bash
+     pip3 uninstall "ansible-base"
+     pip3 install --user "cryptography==36.0.0" "ansible-core" "ansible-lint" "yamllint"
+     pip3 install --user "molecule==3.4.0" "molecule_docker" 
+     ansible-galaxy collection install community.docker
+     molecule --version
+     molecule test
+     ```
+     Оказалось на агенте много чего нехватало или устарело, поэтому пришлось обновлять прямо на ходу: заменил старый ansible на новый, установил старую криптографию для Python 3.6 (была ошибка, что криптография устарела), добавил линтеров и обновил модуль, отвечающий за подключение к докеру (команда не поддерживалась)
 
 ## ~Необязательная часть~
 
