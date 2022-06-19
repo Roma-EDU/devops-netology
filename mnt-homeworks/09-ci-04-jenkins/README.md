@@ -50,25 +50,87 @@
 >7. Проверить работоспособность, исправить ошибки, исправленный Pipeline вложить в репозиторий в файл `ScriptedJenkinsfile`.
 >8. Отправить ссылку на репозиторий с ролью и Declarative Pipeline и Scripted Pipeline.
 
-### Ответ:
+### 1. Freestyle Job:
 
-1. Добавил Freestyle Job
-   * Название `vector-role` (так в момент выполнения на агенте будет создана папочка с таким же именем, а иначе при тесте не будет найдена роль)
-   * Управление исходным кодом - Git
-   * Repository URL - мой с ролью для vector: `git@github.com:Roma-EDU/vector-role.git`
-   * Credentials - из выпадашки выбрал `vagrant_git`
-   * Branches - оставил master по умолчанию
-   * Проставил флажки `Опрашивать SCM об изменениях`, `Delete workspace before build starts` и `Add timestamps to the Console Output`
-   * Сборка - один шаг с выполнением shell команды
-     ```bash
-     pip3 uninstall "ansible-base"
-     pip3 install --user "cryptography==36.0.0" "ansible-core" "ansible-lint" "yamllint"
-     pip3 install --user "molecule==3.4.0" "molecule_docker" 
-     ansible-galaxy collection install community.docker
-     molecule --version
-     molecule test
-     ```
-     Оказалось на агенте много чего нехватало или устарело, поэтому пришлось обновлять прямо на ходу: заменил старый ansible на новый, установил старую криптографию для Python 3.6 (была ошибка, что криптография устарела), добавил линтеров и обновил модуль, отвечающий за подключение к докеру (команда не поддерживалась)
+1. Название `vector-role` (так в момент выполнения на агенте будет создана папочка с таким же именем, а иначе при тесте не будет найдена роль)
+2. Управление исходным кодом - Git
+3. Repository URL - мой с ролью для vector: `git@github.com:Roma-EDU/vector-role.git`
+4. Credentials - из выпадашки выбрал `vagrant_git`
+5. Branches - оставил master по умолчанию
+6. Проставил флажки `Опрашивать SCM об изменениях`, `Delete workspace before build starts` и `Add timestamps to the Console Output`
+7. Сборка - один шаг с выполнением shell команды
+```bash
+pip3 uninstall "ansible-base"
+pip3 install --user "cryptography==36.0.0" "ansible-core" "ansible-lint" "yamllint"
+pip3 install --user "molecule==3.4.0" "molecule_docker" 
+ansible-galaxy collection install community.docker
+molecule --version
+molecule test
+```
+Оказалось на агенте много чего нехватало или устарело, поэтому пришлось обновлять прямо на ходу: заменил старый ansible на новый, установил старую криптографию для Python 3.6 (была ошибка, что криптография устарела), добавил линтеров и обновил модуль, отвечающий за подключение к докеру (команда не поддерживалась)
+
+
+### 2. Declarative & Multibranch Pipeline Job
+
+1. Окружение уже настроено корректно, поэтому скрипт уже нормальный, каким и должен был бы быть в первом шаге. Скрипт такой
+```groovy
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                dir('vector-role') {
+                    git credentialsId: 'c06a7f9a-4ea8-4a9b-b19b-5b4fef5c5a33', url: 'git@github.com:Roma-EDU/vector-role.git'
+                }
+            }
+        }
+        stage('Molecule') {
+            steps {
+                dir('vector-role') {
+                    sh 'molecule --version'
+                    sh 'molecule test'
+                }
+            }
+        }
+    }
+}
+```
+
+2. Перенёс его же в [Jenkinsfile](https://github.com/Roma-EDU/vector-role/blob/1.2.1/Jenkinsfile) для vector-role
+3. Создал Multibranch pipeline для запуска этого файла
+   * Branch Sources: добавил один репозиторий git@github.com:Roma-EDU/vector-role.git с кредами `vagrant_git`
+   * Build Configuration: by Jenkinsfile, путь к файлу `Jenkinsfile` (файл лежит в корне репозитория и называется Jenkinsfile)
+
+
+### Scripted Pipeline
+
+Создал Pipeline Job, указал, что это параметризованная сборка с Boolean параметром `prod_run`
+
+В собираемом репозитории с ролью протухли кастомные указанные в requirements.yml креды, поэтому пришлось изворачиваться
+Что пытался (и как по идее должно было бы работать)
+```groovy
+node("linux"){
+    stage("Git checkout"){
+        git credentialsId: 'c06a7f9a-4ea8-4a9b-b19b-5b4fef5c5a33', url: 'git@github.com:aragastmatb/example-playbook.git'
+    }
+    stage("Install dependencies"){
+        sh 'ansible-vault decrypt --vault-password-file vault_pass secret'
+        sh 'ansible-galaxy install -r requirements.yml -p roles'
+    }
+    stage("Run playbook"){
+        if (params.prod_run){
+            sh 'ansible-playbook site.yml -i inventory/prod.yml'
+        }
+        else{
+            sh 'ansible-playbook site.yml -i inventory/prod.yml --check --diff'
+        }
+    }
+}
+```
+
+Что в итоге получилось: см. [ScriptedJenkinsfile](https://github.com/Roma-EDU/vector-role/blob/1.2.1/ScriptedJenkinsfile)
+P.S. playbook падает во время работы из-за отсутствия прав, но это уже к разработчику playbook'а :)
 
 ## ~Необязательная часть~
 
