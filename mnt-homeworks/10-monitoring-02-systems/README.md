@@ -95,6 +95,24 @@ $ curl http://localhost:9092/kapacitor/v1/ping
 >Для выполнения задания приведите скриншот с отображением метрик утилизации места на диске 
 >(disk->host->telegraf_container_id) из веб-интерфейса.
 
+### Шаг 1. Дополняем собираемые метрики
+
+Редактируем конфигурационный файл /telegraf/telegraf.conf, добавляя недостающие метрики
+```conf
+[[inputs.mem]]
+[[inputs.disk]]
+```
+
+Перезапускаем для чтения актуальной конфигурации
+
+```bash
+$ ./sandbox restart
+```
+
+### Шаг 2. Смотрим, что получилось
+
+![image](https://user-images.githubusercontent.com/77544263/175809828-4fb57696-3148-4c96-a75b-5a61bd68c948.png)
+
 
 ## 5. Telegraf
 
@@ -124,6 +142,26 @@ $ curl http://localhost:9092/kapacitor/v1/ping
 >После настройке перезапустите telegraf, обновите веб интерфейс и приведите скриншотом список `measurments` в веб-интерфейсе базы telegraf.autogen . Там должны появиться метрики, связанные с docker.
 >
 >Факультативно можете изучить какие метрики собирает telegraf после выполнения данного задания.
+
+### Шаг 1. Метрики для докера
+
+Настройка метрик мониторинга докера уже есть изначально
+
+```
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
+  container_names = []
+  timeout = "5s"
+  perdevice = true
+  total = false
+```
+
+Но к сожалению метрики не появляются в интерфейсе. Пробовал разные настройки [из документации] (https://github.com/influxdata/telegraf/blob/master/plugins/inputs/docker/README.md#docker-daemon-permissions): привилегированный режим :Z, добавление пользователя telegraf (которого нет), не помогло
+
+![image](https://user-images.githubusercontent.com/77544263/175812170-cc9924f6-fd7b-4a07-aea1-e5e9aca74584.png)
+
+
+
 
 ## ~Дополнительное задание (со звездочкой*) - необязательно к выполнению~
 
