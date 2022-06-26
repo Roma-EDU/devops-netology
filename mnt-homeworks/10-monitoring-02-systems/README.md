@@ -1,8 +1,6 @@
 # 10.2. Системы мониторинга
 
-## Обязательные задания
-
-### 1. Опишите основные плюсы и минусы pull и push систем мониторинга.
+## 1. Опишите основные плюсы и минусы pull и push систем мониторинга.
 
 **Pull**:
 1. Плюсы
@@ -26,7 +24,7 @@
    * Перенастроить множество агентов - сложно
 
 
-### 2. Какие из ниже перечисленных систем относятся к push модели, а какие к pull? А может есть гибридные?
+## 2. Какие из ниже перечисленных систем относятся к push модели, а какие к pull? А может есть гибридные?
 
 - Prometheus - pull + есть pushgateway для push
 - TICK - push
@@ -35,7 +33,7 @@
 - Nagios - push и pull
 
 
-### 3. TICK
+## 3. TICK
 
 >Склонируйте себе [репозиторий](https://github.com/influxdata/sandbox/tree/master) и запустите TICK-стэк, используя технологии docker и docker-compose.
 >
@@ -49,8 +47,41 @@
 >
 >P.S.: если при запуске некоторые контейнеры будут падать с ошибкой - проставьте им режим `Z`, например `./data:/var/lib:Z`
 
+### Шаг 0. Добавил в Vagrantfile проброску портов
 
-### 4. Chronograf
+```ruby
+config.vm.network "forwarded_port", guest: 8888, host: 8888
+config.vm.network "forwarded_port", guest: 3010, host: 3010
+```
+
+### Шаг 1. Склонировал репозиторий и запустил установку
+
+```bash
+$ ./sandbox up
+Using latest, stable releases
+Spinning up Docker Images...
+If this is your first time starting sandbox this might take a minute...
+Creating network "tick_default" with the default driver
+Building influxdb
+Sending build context to Docker daemon  4.096kB
+Step 1/2 : ARG INFLUXDB_TAG
+Step 2/2 : FROM influxdb:$INFLUXDB_TAG
+...
+```
+
+### Шаг 2. Смотрим, что получилось
+
+```bash
+$ curl http://localhost:8086/ping
+$ curl http://localhost:8888
+<!DOCTYPE html><html><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"><title>Chronograf</title><link rel="icon shortcut" href="/favicon.fa749080.ico"><link rel="stylesheet" href="/src.9cea3e4e.css"></head><body> <div id="react-root" data-basepath=""></div> <script src="/src.a969287c.js"></script> </body></html>
+$ curl http://localhost:9092/kapacitor/v1/ping
+```
+
+![image](https://user-images.githubusercontent.com/77544263/175807209-f375dd6b-5496-4b69-b17a-ca71a8e30c14.png)
+
+
+## 4. Chronograf
 
 >Перейдите в веб-интерфейс Chronograf (`http://localhost:8888`) и откройте вкладку `Data explorer`.
 >
@@ -65,7 +96,7 @@
 >(disk->host->telegraf_container_id) из веб-интерфейса.
 
 
-### 5. Telegraf
+## 5. Telegraf
 
 >Изучите список [telegraf inputs](https://github.com/influxdata/telegraf/tree/master/plugins/inputs). 
 >Добавьте в конфигурацию telegraf следующий плагин - [docker](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/docker):
