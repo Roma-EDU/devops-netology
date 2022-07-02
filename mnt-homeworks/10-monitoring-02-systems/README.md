@@ -160,7 +160,37 @@ $ ./sandbox restart
 
 ![image](https://user-images.githubusercontent.com/77544263/175812170-cc9924f6-fd7b-4a07-aea1-e5e9aca74584.png)
 
+### Шаг 2. Метрики для докера - проверка telegraf
 
+Подключился к контейнеру telegraf'a
+```bash
+$ ./sandbox enter telegraf
+Using latest, stable releases
+Entering /bin/bash session in the telegraf container...
+```
+
+Проверил доступы к сокету докера (выдавал права `chmod o+r /var/run/docker.sock`)
+```bash
+ls -la /var/run/docker.sock
+srw-rw-r-- 1 root 998 0 Jul  2 08:10 /var/run/docker.sock
+```
+
+Проверил работу telegraf
+```bash
+$ telegraf --test
+2022-07-02T10:34:19Z I! Using config file: /etc/telegraf/telegraf.conf
+2022-07-02T10:34:19Z W! DeprecationWarning: Option "perdevice" of plugin "inputs.docker" deprecated since version 1.18.0 and will be removed in 2.0.0: use 'perdevice_include' instead
+2022-07-02T10:34:19Z I! Starting Telegraf 1.23.0
+2022-07-02T10:34:19Z I! Loaded inputs: cpu disk docker influxdb mem syslog system
+2022-07-02T10:34:19Z I! Loaded aggregators:
+2022-07-02T10:34:19Z I! Loaded processors:
+2022-07-02T10:34:19Z W! Outputs are not used in testing mode!
+2022-07-02T10:34:19Z I! Tags enabled: host=telegraf-getting-started
+2022-07-02T10:34:19Z W! Deprecated inputs: 0 and 1 options
+2022-07-02T10:34:19Z E! [agent] Starting input inputs.syslog: listen tcp 127.0.0.1:6514: bind: address already in use
+...
+```
+Все ожидаемые метрики показываются (cpu disk **docker** influxdb mem syslog system), [полный output]() 
 
 
 ## ~Дополнительное задание (со звездочкой*) - необязательно к выполнению~
