@@ -190,7 +190,7 @@ $ telegraf --test
 2022-07-02T10:34:19Z E! [agent] Starting input inputs.syslog: listen tcp 127.0.0.1:6514: bind: address already in use
 ...
 ```
-Все ожидаемые метрики показываются (cpu disk **docker** influxdb mem syslog system), [полный output]() 
+Все ожидаемые метрики показываются (cpu disk **docker** influxdb mem syslog system), полный output в [telegraf-test.txt](./telegraf-test.txt) 
 
 
 ## ~Дополнительное задание (со звездочкой*) - необязательно к выполнению~
