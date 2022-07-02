@@ -171,7 +171,7 @@ Entering /bin/bash session in the telegraf container...
 
 Проверил доступы к сокету докера (выдавал права `chmod o+r /var/run/docker.sock`)
 ```bash
-ls -la /var/run/docker.sock
+$ ls -la /var/run/docker.sock
 srw-rw-r-- 1 root 998 0 Jul  2 08:10 /var/run/docker.sock
 ```
 
