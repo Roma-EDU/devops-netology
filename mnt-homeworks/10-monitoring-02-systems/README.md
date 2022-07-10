@@ -193,6 +193,18 @@ $ telegraf --test
 Все ожидаемые метрики показываются (cpu disk **docker** influxdb mem syslog system), полный output в [telegraf-test.txt](./telegraf-test.txt) 
 
 
+### Шаг 3. Метрики для докера - дополнительные права
+
+Оказалось, что для отображения метрик докера недостаточно прав только на чтение, нужно ещё и на запись
+```bash
+$ sudo chmod o+w /var/run/docker.sock
+$ ls -la /var/run/docker.sock
+srw-rw-rw- 1 root docker 0 Jul 10 12:15 /var/run/docker.sock
+```
+
+![image](https://user-images.githubusercontent.com/77544263/178145296-fb565be9-f9d0-48bd-9fd3-c46c8d705cb2.png)
+
+
 ## ~Дополнительное задание (со звездочкой*) - необязательно к выполнению~
 
 >В веб-интерфейсе откройте вкладку `Dashboards`. Попробуйте создать свой dashboard с отображением:
