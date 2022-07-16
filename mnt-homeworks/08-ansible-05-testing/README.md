@@ -19,7 +19,7 @@ $ pip3 install "ansible-lint<6.0.0"
 
 >Наша основная цель - настроить тестирование наших ролей. Задача: сделать сценарии тестирования для vector. Ожидаемый результат: все сценарии успешно проходят тестирование ролей.
 
-### Molecule
+### 1. Molecule
 
 >1. Запустите  `molecule test -s centos7` внутри корневой директории clickhouse-role, посмотрите на вывод команды.
 >2. Перейдите в каталог с ролью vector-role и создайте сценарий тестирования по умолчанию при помощи `molecule init scenario --driver-name docker`.
@@ -38,7 +38,7 @@ $ pip3 install "ansible-lint<6.0.0"
 3. Заполнил разделы `platforms` и `lint` в [molecule.yml](). Запустил прогон тестов по умолчанию (папка molecule/defaults) с помощью `molecule test`, исправил перенос строк \r\n -> \n. Под centos:8 не взлетело ввиду отсутствия поддержки этой ОС (нужно специальные команды добавлять или хитрый docker-image делать)
 4. Добавил проверку успешности запуска и корректности версии (2 в 1), повторно протестировал роль
 
-### Tox
+### 2. Tox
 
 >1. Добавьте в директорию с vector-role файлы из [директории](./example)
 >2. Запустите `docker run --privileged=True -v <path_to_repo>:/opt/vector-role -w /opt/vector-role -it <image_name> /bin/bash`, где path_to_repo - путь до корня репозитория с vector-role на вашей файловой системе.
@@ -144,6 +144,97 @@ localhost                  : ok=2    changed=1    unreachable=0    failed=0    s
 INFO     Pruning extra files from scenario ephemeral directory
 ERROR: InvocationError for command /root/test/.tox/py37-ansible30/bin/molecule test -s toxtest --destroy always (exited with code 1)
 ```
+
+### 2*. Tox (доработка под исправленное задание)
+
+>Подготовка к выполнению
+>1. Установите molecule: `pip3 install "molecule==3.4.0"`
+>2. Выполните `docker pull aragast/netology:latest` -  это образ с podman, tox и несколькими пайтонами (3.7 и 3.9) внутри
+
+>**Tox**
+>1. Добавьте в директорию с vector-role файлы из [директории](https://github.com/netology-code/mnt-homeworks/tree/MNT-13/08-ansible-05-testing/example)
+>2. Запустите `docker run --privileged=True -v <path_to_repo>:/opt/vector-role -w /opt/vector-role -it aragast/netology:latest /bin/bash`, где path_to_repo - путь до корня репозитория с vector-role на вашей файловой системе.
+>3. Внутри контейнера выполните команду `tox`, посмотрите на вывод.
+>4. Создайте облегчённый сценарий для `molecule` с драйвером `molecule_podman`. Проверьте его на исполнимость.
+>5. Пропишите правильную команду в `tox.ini` для того чтобы запускался облегчённый сценарий.
+>6. Запустите команду `tox`. Убедитесь, что всё отработало успешно.
+>7. Добавьте новый тег на коммит с рабочим сценарием в соответствии с семантическим версионированием.
+
+**Ответ**
+1. Добавил
+2. Создал облегчённый сценарий toxtest, проверил исполнимость
+3. Обновил команду в tox.ini `commands = {posargs:molecule test -s toxtest --destroy always}` для запуска этого сценария
+4. Запустил `$ docker run --privileged=True -v /vagrant/08-ansible-05-testing/vector-role:/opt/vector-role -w /opt/vector-role -it aragast/netology:latest /bin/bash`
+5. Запустил `tox`, всё упало с ошибкой. Подозреваю что из-за наличия символа дефиса `-`
+   ```bash
+   py37-ansible211 create: /opt/vector-role/.tox/py37-ansible211
+   ERROR: invocation failed (exit code 1), logfile: /opt/vector-role/.tox/py37-ansible211/log/py37-ansible211-0.log
+   ====================================================== log start =======================================================
+   OSError: [Errno 71] Protocol error: '/usr/local/bin/python3.7' -> '/opt/vector-role/.tox/py37-ansible211/bin/python'
+   
+   ======================================================= log end ========================================================
+   ERROR: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.7 py37-ansible211 (exited with code 1)
+   py37-ansible30 create: /opt/vector-role/.tox/py37-ansible30
+   ERROR: invocation failed (exit code 1), logfile: /opt/vector-role/.tox/py37-ansible30/log/py37-ansible30-0.log
+   ====================================================== log start =======================================================
+   OSError: [Errno 71] Protocol error: '/usr/local/bin/python3.7' -> '/opt/vector-role/.tox/py37-ansible30/bin/python'
+   
+   ======================================================= log end ========================================================
+   ERROR: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.7 py37-ansible30 (exited with code 1)
+   py39-ansible211 create: /opt/vector-role/.tox/py39-ansible211
+   ERROR: invocation failed (exit code 1), logfile: /opt/vector-role/.tox/py39-ansible211/log/py39-ansible211-0.log
+   ====================================================== log start =======================================================
+   OSError: [Errno 71] Protocol error: '/usr/local/bin/python3.9' -> '/opt/vector-role/.tox/py39-ansible211/bin/python'
+   
+   ======================================================= log end ========================================================
+   ERROR: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.9 py39-ansible211 (exited with code 1)
+   py39-ansible30 create: /opt/vector-role/.tox/py39-ansible30
+   ERROR: invocation failed (exit code 1), logfile: /opt/vector-role/.tox/py39-ansible30/log/py39-ansible30-0.log
+   ====================================================== log start =======================================================
+   OSError: [Errno 71] Protocol error: '/usr/local/bin/python3.9' -> '/opt/vector-role/.tox/py39-ansible30/bin/python'
+   
+   ======================================================= log end ========================================================
+   ERROR: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.9 py39-ansible30 (exited with code 1)
+   _______________________________________________________ summary ________________________________________________________
+   ERROR:   py37-ansible211: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.7 py37-ansible211 (exited with code 1)
+   ERROR:   py37-ansible30: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.7 py37-ansible30 (exited with code 1)
+   ERROR:   py39-ansible211: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.9 py39-ansible211 (exited with code 1)
+   ERROR:   py39-ansible30: InvocationError for command /usr/bin/python3 -m virtualenv --no-download --python /usr/local/bin/python3.9 py39-ansible30 (exited with code 1)
+   ```
+6. Скопировал папку в независимый путь, без дефиса.
+   ```bash
+   $ cp . ~/test -r
+   $ cd ~/test
+   $ tox
+   ```   
+7. Опять ошибка - теперь проблема с podman `Cannot set hostname when running in the host UTS namespace with podman in container`. Подправил конфигурационный файл `/etc/containers/containers.conf`
+   ```conf
+   [containers]
+   netns="private"
+   userns="host"
+   ipcns="host"
+   utsns="private"
+   cgroupns="host"
+   cgroups="disabled"
+   log_driver = "k8s-file"
+   [engine]
+   cgroup_manager = "cgroupfs"
+   events_logger="file"
+   runtime="crun"
+   ```
+8. Запустил `tox` снова - опять ошибка, шаг `PLAY [Converge]` не находит vector-role. Поправил "включение роли" в `molecule/toxtest/converge.yml` на название папки:
+   ```yml
+   ---
+   - name: Converge
+     hosts: all
+     tasks:
+       - name: "Include vector-role"
+         include_role:
+           name: "test"
+   ```
+9. Запустил тестирование, всё закончилось успехом :)
+   ![image](https://user-images.githubusercontent.com/77544263/179367425-9a3863a5-75eb-485f-86ff-ef728057926a.png)
+
 
 ## ~Необязательная часть~
 
