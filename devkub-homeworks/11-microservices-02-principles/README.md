@@ -17,7 +17,21 @@
 
 **Ответ**
 
+| API Gateway | Маршрутизация запросов на основе конфигурации | Проверка аутентификационной информации в запросах | Терминация HTTPS |
+| :---                                                               | :---: | :---: | :---: |
+| [Nginx](https://nginx.com)                                         |   v   |   v   |   v   |
+| [HAProxy](https://www.haproxy.com)                                 |   v   |   v   |   v   |
+| [Tyk](https://tyk.io)                                              |   v   |   v   |   v   |
+| [Kong](https://konghq.com/products/api-gateway-platform)           |   v   |   v   |   v   |
+| [Apache Apisix](https://apisix.apache.org)                         |   v   |   v   |   v   |
+| [Ocelot](https://github.com/ThreeMammals/Ocelot)                   |   v   |   v   |   v   |
+| [Amazon API Gateway](https://aws.amazon.com/ru/api-gateway/)       |   v   |   v   |   v   |
+| [Azure](https://azure.microsoft.com/en-gb/services/api-management) |   v   |   v   |   v   |
+| [Yandex API Gateway](https://cloud.yandex.ru/docs/api-gateway/)    |   v   |   v   |   v   |
 
+В целом, каждый из сервисов имеет свои преимущества и недостатки. 
+Если разрабатываемая система хостится в облаке, то удобнее было бы воспользоваться их же услугами: очень быстрый старт, возможность автоматического масштабирования, защита от DDoS-атак и т.п.
+Если сервера собственные, то стоит начать с Nginx, как наиболее распространённая система с документацией и большим комьюнити
 
 ## Задача 2: Брокер сообщений
 
