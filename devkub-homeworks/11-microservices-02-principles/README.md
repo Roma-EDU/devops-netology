@@ -21,6 +21,7 @@
 | :---                                                               | :---: | :---: | :---: |
 | [Nginx](https://nginx.com)                                         |   v   |   v   |   v   |
 | [HAProxy](https://www.haproxy.com)                                 |   v   |   v   |   v   |
+| [Caddy](https://caddyserver.com)                                   |   v   |   v   |   v   |
 | [Tyk](https://tyk.io)                                              |   v   |   v   |   v   |
 | [Kong](https://konghq.com/products/api-gateway-platform)           |   v   |   v   |   v   |
 | [Apache Apisix](https://apisix.apache.org)                         |   v   |   v   |   v   |
@@ -48,6 +49,14 @@
 >Обоснуйте свой выбор.
 
 **Ответ**
+
+| Брокер сообщений      | Кластеризация | Хранение сообщений на диске | Высокая скорость работы | Различные форматы | Права доступа | Простота |
+| :-------------------- | :-----------: | :-------------------------: | :--------------: | :----: | :-----------: | :------: |
+| [Kafka](https://kafka.apache.org)                           |  +  |  +  |  +  |  +  |  +  |  -  |
+| [RabbitMQ](https://www.rabbitmq.com)                        |  +  |  +  |  +  |  +  |  +  |  +  |
+| [Redis (pub,sub)](https://redis.io)                         |  +  |  -  |  +  |  +  |  -  |  +  |
+| [Amazon SQS](https://aws.amazon.com/ru/sqs/)                | N/A | N/A |  +  |  -  |  -  |  +  |
+| [Yandex MQ](https://cloud.yandex.ru/services/message-queue) | N/A | N/A |  +  |  -  |  -  |  +  |
 
 
 
