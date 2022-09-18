@@ -26,15 +26,15 @@ $ terraform apply -auto-approve
 В итоге получаем сервера с адресами
 ```bash
 $ yc compute instance list
-+----------------------+-------+---------------+---------+---------------+---------------+
-|          ID          | NAME  |    ZONE ID    | STATUS  |  EXTERNAL IP  |  INTERNAL IP  |
-+----------------------+-------+---------------+---------+---------------+---------------+
-| fhm7sjpcen7s8j6d394e | cp1   | ru-central1-a | RUNNING | 51.250.87.154 | 192.168.10.25 |
-| fhmntbk4ibddst14684i | node1 | ru-central1-a | RUNNING | 51.250.81.234 | 192.168.10.12 |
-| fhmq9n79jagg0jjffp2q | node2 | ru-central1-a | RUNNING | 51.250.78.39  | 192.168.10.16 |
-| fhmsasnfogp1c7dre8vc | node3 | ru-central1-a | RUNNING | 51.250.86.24  | 192.168.10.22 |
-| fhmgfmpsu218t8gcpc75 | node4 | ru-central1-a | RUNNING | 51.250.74.150 | 192.168.10.18 |
-+----------------------+-------+---------------+---------+---------------+---------------+
++----------------------+-------+---------------+---------+---------------+-------------+
+|          ID          | NAME  |    ZONE ID    | STATUS  |  EXTERNAL IP  | INTERNAL IP |
++----------------------+-------+---------------+---------+---------------+-------------+
+| fhmbira3vhuifh2llo2n | cp1   | ru-central1-a | RUNNING | 51.250.10.22  | 10.0.0.34   |
+| fhma2fuq5846llnugt3d | node1 | ru-central1-a | RUNNING | 51.250.82.9   | 10.0.0.8    |
+| fhmhs3u94337hbtl67bs | node2 | ru-central1-a | RUNNING | 51.250.79.196 | 10.0.0.13   |
+| fhmp3tkhvccemru70tgk | node3 | ru-central1-a | RUNNING | 51.250.83.86  | 10.0.0.20   |
+| fhm31tt96s090c95iios | node4 | ru-central1-a | RUNNING | 51.250.78.236 | 10.0.0.23   |
++----------------------+-------+---------------+---------+---------------+-------------+
 ```
 
 
@@ -42,7 +42,7 @@ $ yc compute instance list
 
 По публичному IP-адресу подключаемся к мастер-ноде, клонируем репозиторий kubespray и донастраиваепм ноду
 ```bash
-$ ssh ubuntu@51.250.87.154
+$ ssh ubuntu@51.250.10.22
 $ git clone https://github.com/kubernetes-sigs/kubespray
 $ sudo apt-get update
 $ sudo apt-get install -y pip
