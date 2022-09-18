@@ -11,6 +11,45 @@
 
 Уточнение задания на лекции: в качестве CRI - `docker`, доступ с локального компьютера в kubernates через `kubectl`
 
+### Шаг 1. Создаём сервера
+
+С помощью [terraform](./terraform) поднимаем необходимое количество инстансов на Yandex.Cloud
+```bash
+$ cd terraform
+$ yc init
+$ yc iam key create --service-account-name terraform-service-account --output key.json
+$ terraform init
+$ terraform validate
+$ terraform apply -auto-approve
+```
+
+В итоге получаем сервера с адресами
+```bash
+
+```
+
+
+### Шаг 2. Подключаемся к мастер-ноде и устанавливаем зависимости
+
+По публичному IP-адресу подключаемся к мастер-ноде, клонируем репозиторий kubespray и донастраиваепм ноду
+```bash
+$ ssh ubuntu@51.250.87.154
+$ git clone https://github.com/kubernetes-sigs/kubespray
+$ sudo apt-get update
+$ sudo apt-get install pip tree
+$ sudo pip3 install -r requirements.txt
+```
+
+А также копируем сюда приватный ключ, чтобы иметь доступ к остальным нодам
+```bash
+$ nano ~/.ssh/id_rsa
+$ chmod 600 ~/.ssh/id_rsa
+```
+
+### Шаг 3. Настраиваем конфигурацию kubespray
+
+
+
 ## ~Задание 2 (*): подготовить и проверить инвентарь для кластера в AWS~
 >Часть новых проектов хотят запускать на мощностях AWS. Требования похожи:
 >* разворачивать 5 нод: 1 мастер и 4 рабочие ноды;
