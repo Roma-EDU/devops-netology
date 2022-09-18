@@ -25,7 +25,16 @@ $ terraform apply -auto-approve
 
 В итоге получаем сервера с адресами
 ```bash
-
+$ yc compute instance list
++----------------------+-------+---------------+---------+---------------+---------------+
+|          ID          | NAME  |    ZONE ID    | STATUS  |  EXTERNAL IP  |  INTERNAL IP  |
++----------------------+-------+---------------+---------+---------------+---------------+
+| fhm7sjpcen7s8j6d394e | cp1   | ru-central1-a | RUNNING | 51.250.87.154 | 192.168.10.25 |
+| fhmntbk4ibddst14684i | node1 | ru-central1-a | RUNNING | 51.250.81.234 | 192.168.10.12 |
+| fhmq9n79jagg0jjffp2q | node2 | ru-central1-a | RUNNING | 51.250.78.39  | 192.168.10.16 |
+| fhmsasnfogp1c7dre8vc | node3 | ru-central1-a | RUNNING | 51.250.86.24  | 192.168.10.22 |
+| fhmgfmpsu218t8gcpc75 | node4 | ru-central1-a | RUNNING | 51.250.74.150 | 192.168.10.18 |
++----------------------+-------+---------------+---------+---------------+---------------+
 ```
 
 
@@ -36,14 +45,23 @@ $ terraform apply -auto-approve
 $ ssh ubuntu@51.250.87.154
 $ git clone https://github.com/kubernetes-sigs/kubespray
 $ sudo apt-get update
-$ sudo apt-get install pip tree
+$ sudo apt-get install -y pip
 $ sudo pip3 install -r requirements.txt
+```
+
+Заодно поставим kubectl
+```bash
+$ sudo apt-get install -y apt-transport-https
+$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+$ echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+$ sudo apt-get update
+$ sudo apt-get install -y kubectl
 ```
 
 А также копируем сюда приватный ключ, чтобы иметь доступ к остальным нодам
 ```bash
 $ nano ~/.ssh/id_rsa
-$ chmod 600 ~/.ssh/id_rsa
+$ chmod 0600 ~/.ssh/id_rsa
 ```
 
 ### Шаг 3. Настраиваем конфигурацию kubespray
