@@ -11,6 +11,7 @@
 
 Уточнение задания на лекции: в качестве CRI - `docker`, доступ с локального компьютера в kubernates через `kubectl`
 
+
 ### Шаг 1. Создаём сервера
 
 С помощью [terraform](./terraform) поднимаем необходимое количество инстансов на Yandex.Cloud
@@ -38,34 +39,119 @@ $ yc compute instance list
 ```
 
 
-### Шаг 2. Подключаемся к мастер-ноде и устанавливаем зависимости
+### Шаг 2. Настраиваем kubespray (на локальной машине)
 
-По публичному IP-адресу подключаемся к мастер-ноде, клонируем репозиторий kubespray и донастраиваепм ноду
+Выкачиваем репозиторий kubespray, доустанавливаем зависимости
 ```bash
-$ ssh ubuntu@51.250.10.22
 $ git clone https://github.com/kubernetes-sigs/kubespray
+$ cd kubespray
 $ sudo apt-get update
 $ sudo apt-get install -y pip
 $ sudo pip3 install -r requirements.txt
 ```
 
-Заодно поставим kubectl
+Заодно поставим kubectl и kubeadm версии 1.24.4 (такая же используется в kubespray) и зафиксируем их от обновления
 ```bash
-$ sudo apt-get install -y apt-transport-https
-$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-$ echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+$ sudo apt-get install -y apt-transport-https ca-certificates curl
+$ sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+$ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 $ sudo apt-get update
-$ sudo apt-get install -y kubectl
+$ sudo apt-get install -y kubelet=1.24.4-00 kubeadm=1.24.4-00 kubectl=1.24.4-00 containerd
+$ sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
-А также копируем сюда приватный ключ, чтобы иметь доступ к остальным нодам
-```bash
-$ nano ~/.ssh/id_rsa
-$ chmod 0600 ~/.ssh/id_rsa
-```
 
 ### Шаг 3. Настраиваем конфигурацию kubespray
 
+Скопируем готовый пример 
+```bash
+$ cp -rfp inventory/sample inventory/mycluster
+```
+
+Настроим его конфигурацию, подав во вспомогательную утилиту **внутренние IP** всех нод: и рабочих и мастера
+```bash
+$ declare -a IPS=(10.0.0.34 10.0.0.8 10.0.0.13 10.0.0.20 10.0.0.23)
+$ CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
+```
+
+Отредактируем полученный [hosts.yaml](./inventory/mycluster/hosts.yaml):
+* Переименуем ноды согласно названию сервера (node1 -> cp1, node2 -> node1)
+* Пропишем корректрые публичные IP в поле `ansible_host` (нужно для работы ансибла, другие поля ip и access_ip редактировать не надо, чтобы общение между нодами шло через локальную нетарифицируемую сеть)
+* Поправим пользователя, от имени которого выполняется настройка `ansible_user`
+* Поправим хосты для мастер-нод kube_control_plane и рабочих нод kube_node
+* Поправим расположение etcd
+
+Настройки самого kubernates-кластера производятся в файлике `inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yaml`. В нашем случае нужно обновить только параметр 
+```yaml
+container_manager: docker
+```
+
+
+### Шаг 4. Запускаем развёртывание кластера
+
+Запускаем процесс развёртывания кластера с помощью ansible и долго ждём. Затем, после успешного завершения установки, подключаемся на мастер-ноду и копируем ключи для удалённого подключения
+```bash
+$ ansible-playbook -i inventory/mycluster/hosts.yaml cluster.yml -b -v
+$ ssh ubuntu@51.250.10.22
+$ cat /etc/kubernetes/admin.conf
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: <PRIVATE_AUTHORITY_DATA>
+    server: https://127.0.0.1:6443
+  name: cluster.local
+contexts:
+- context:
+    cluster: cluster.local
+    user: kubernetes-admin
+  name: kubernetes-admin@cluster.local
+current-context: kubernetes-admin@cluster.local
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: <PRIVATE_CERTIFICATE_DATA>
+    client-key-data:  <PRIVATE_KEY_DATA>
+$ exit
+```
+
+Меняем IP-адрес сервера с локального 127.0.0.1 на публичный 51.250.10.22 и сохраняем на локальном компьютере в файл `~/.kube/config` для подключения к кластеру
+```bash
+$ mkdir -p $HOME/.kube
+$ nano $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+### Шаг 5. Разрешаем удалённое подключение к кластеру
+
+Команда `kubectl get nodes` завершается с ошибкой, поскольку не настроен сертификат для работы через публичный IP. Ещё раз редактируем файл `inventory/mycluster/group_vars/k8s-cluster/k8s-cluster.yaml`, раскомментировав свойство `supplementary_addresses_in_ssl_keys` и прописав в него публичный IP. 
+```yaml
+supplementary_addresses_in_ssl_keys: [51.250.10.22]
+```
+
+Затем повторно прогоним ansible 
+```bash
+$ ansible-playbook -i inventory/mycluster/hosts.yaml cluster.yml -b -v
+...
+PLAY RECAP ********************************************************************************************************
+cp1                        : ok=644  changed=29   unreachable=0    failed=0    skipped=1202 rescued=0    ignored=2
+localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+node1                      : ok=431  changed=15   unreachable=0    failed=0    skipped=713  rescued=0    ignored=2
+node2                      : ok=431  changed=15   unreachable=0    failed=0    skipped=712  rescued=0    ignored=2
+node3                      : ok=431  changed=15   unreachable=0    failed=0    skipped=712  rescued=0    ignored=2
+node4                      : ok=431  changed=15   unreachable=0    failed=0    skipped=712  rescued=0    ignored=2
+```
+
+Проверим, что успешно подключаемся с локальной машины
+```bash
+$ kubectl get nodes -o wide
+NAME    STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+cp1     Ready    control-plane   35m   v1.24.4   10.0.0.34     <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node1   Ready    <none>          33m   v1.24.4   10.0.0.8      <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node2   Ready    <none>          33m   v1.24.4   10.0.0.13     <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node3   Ready    <none>          33m   v1.24.4   10.0.0.20     <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+```
 
 
 ## ~Задание 2 (*): подготовить и проверить инвентарь для кластера в AWS~
