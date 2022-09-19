@@ -146,11 +146,12 @@ node4                      : ok=431  changed=15   unreachable=0    failed=0    s
 Проверим, что успешно подключаемся с локальной машины
 ```bash
 $ kubectl get nodes -o wide
-NAME    STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
-cp1     Ready    control-plane   35m   v1.24.4   10.0.0.34     <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
-node1   Ready    <none>          33m   v1.24.4   10.0.0.8      <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
-node2   Ready    <none>          33m   v1.24.4   10.0.0.13     <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
-node3   Ready    <none>          33m   v1.24.4   10.0.0.20     <none>        Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+NAME    STATUS   ROLES          AGE   VERSION   INTERNAL-IP  EXTERNAL-IP  OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+cp1     Ready    control-plane  88m   v1.24.4   10.0.0.34    <none>       Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node1   Ready    <none>         86m   v1.24.4   10.0.0.8     <none>       Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node2   Ready    <none>         86m   v1.24.4   10.0.0.13    <none>       Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node3   Ready    <none>         86m   v1.24.4   10.0.0.20    <none>       Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
+node4   Ready    <none>         86m   v1.24.4   10.0.0.23    <none>       Ubuntu 20.04.3 LTS   5.4.0-96-generic   docker://20.10.17
 ```
 
 
