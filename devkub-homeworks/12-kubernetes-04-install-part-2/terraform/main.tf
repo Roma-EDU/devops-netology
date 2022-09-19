@@ -22,7 +22,7 @@ resource "yandex_compute_instance" "control-plane-vm" {
 
   boot_disk {
     initialize_params {
-      image_id = var.container_optimized_image
+      image_id = var.ubuntu_2004
       type     = "network-nvme"
       size     = 30
     }
@@ -52,7 +52,7 @@ resource "yandex_compute_instance" "worker-node-vm" {
 
   boot_disk {
     initialize_params {
-      image_id = var.container_optimized_image
+      image_id = var.ubuntu_2004
       type     = "network-nvme"
       size     = 30
     }
