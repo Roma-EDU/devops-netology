@@ -162,7 +162,7 @@ Handling connection for 8080
 И проверим в другом терминале
 
 ```bash
-curl 127.0.0.1:8080
+$ curl 127.0.0.1:8080
 CLIENT VALUES:
 client_address=127.0.0.1
 command=GET
