@@ -110,6 +110,46 @@ Context "minikube" modified.
 ```
 Смотреть ноды можно, а удалять нельзя - всё как планировали
 
+И содержимое `~/.kube/config`
+```
+$ cat ~/.kube/config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /home/roma/.minikube/ca.crt
+    extensions:
+    - extension:
+        last-update: Sat, 08 Oct 2022 11:11:56 UTC
+        provider: minikube.sigs.k8s.io
+        version: v1.27.1
+      name: cluster_info
+    server: https://192.168.49.2:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    extensions:
+    - extension:
+        last-update: Sat, 08 Oct 2022 11:11:56 UTC
+        provider: minikube.sigs.k8s.io
+        version: v1.27.1
+      name: context_info
+    namespace: app-namespace
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: developer1
+  user:
+    token: eyJhbGciOiJSUzI1NiIsImtpZCI6InVOdUNyQm1ZQ3V5SFAwS052eUJ3bEJhRjJIZDAtTFQ0SFcwblVlcjBLQ0kifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjY1MjQ5MDA1LCJpYXQiOjE2NjUyNDU0MDUsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJhcHAtbmFtZXNwYWNlIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImRldmVsb3BlcjEiLCJ1aWQiOiIwMGNmMDNiMC1mZjRkLTQ2NWMtOTNlMy0xZmI4MzhlZWY0MWQifX0sIm5iZiI6MTY2NTI0NTQwNSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmFwcC1uYW1lc3BhY2U6ZGV2ZWxvcGVyMSJ9.CiTNtaA7zr2hjQK_bdSTwcIYWuB_-Me3kUM_SjES82-nDQoMQtav1briaJSeYeXtF1sc7WsBRe1gXPlerhHv1HKES6hNWbnf_R6__BI5Z_2eX5Fq9wnbQqwOTFePJmUnRyG2WWiDvwsjqhijSrLymerxIQLVos-6Nwp-keBI3fbFa4Jbn-Urx9ZFUVwqqEJwojfzBSAF2CzonyvKpDqPyaTCqwNCnpKJUhvuPCckxAzfd9ewd-DDuFX7q6bhqd-WQ6gP3cw77L2Z3mkn7jzhcaNWjLhUtQ78Bk2YA5V_-Qs68UUkH80gddbGtUapQAnSvsiyySddxSE1bFt8vbImeQ
+- name: minikube
+  user:
+    client-certificate: /home/roma/.minikube/profiles/minikube/client.crt
+    client-key: /home/roma/.minikube/profiles/minikube/client.key
+```
+
 ## Задание 3: Изменение количества реплик 
 >Поработав с приложением, вы получили запрос на увеличение количества реплик приложения для нагрузки. Необходимо изменить запущенный deployment, увеличив количество реплик до 5. Посмотрите статус запущенных подов после увеличения реплик. 
 >
@@ -121,6 +161,7 @@ Context "minikube" modified.
 
 ### Шаг 1. Изменим количество реплик
 
+Воспользуемся командой `scale`
 ```bash
 $ kubectl scale --replicas=5 deployment/hello-node
 deployment.apps/hello-node scaled
