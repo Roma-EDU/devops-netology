@@ -15,11 +15,24 @@
 
 ### Шаг 0. Поднимем кластер minikube
 
+Установим minikube и kubectl.
 Подробности в предыдущем ДЗ [12-kubernetes-01-intro](../12-kubernetes-01-intro)
 
 
-### Шаг 1. 
+### Шаг 1. Развернём деплоймент
 
+С помощью `kubectl create deployment` создадим деплоймент на основе образа из hello world, зададим ему 2 реплики `--replicas=2` и проверим, что получилось 
+```bash
+$ kubectl create deployment hello-node --image=k8s.gcr.io/echoserver:1.4 --replicas=2
+deployment.apps/hello-node created
+$ kubectl get deployment
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+hello-node   2/2     2            2           33s
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+hello-node-697897c86-47x5q   1/1     Running   0          28s
+hello-node-697897c86-hqwpb   1/1     Running   0          28s
+```
 
 
 ## Задание 2: Просмотр логов для разработки
