@@ -119,4 +119,16 @@ Context "minikube" modified.
 
 **Ответ**:
 
+### Шаг 1. Изменим количество реплик
 
+```bash
+$ kubectl scale --replicas=5 deployment/hello-node
+deployment.apps/hello-node scaled
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+hello-node-697897c86-pzkc2   1/1     Running   0          60m
+hello-node-697897c86-s8ktc   1/1     Running   0          31s
+hello-node-697897c86-s99z4   1/1     Running   0          60m
+hello-node-697897c86-tjskx   1/1     Running   0          31s
+hello-node-697897c86-xfstk   1/1     Running   0          31s
+```
