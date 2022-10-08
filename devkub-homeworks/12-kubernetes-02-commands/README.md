@@ -18,6 +18,14 @@
 Установим minikube и kubectl.
 Подробности в предыдущем ДЗ [12-kubernetes-01-intro](../12-kubernetes-01-intro)
 
+А также создадим namespace для задачи 2 и перейдём в него
+```bash
+$ kubectl create namespace app-namespace
+namespace/app-namespace created
+$ kubectl config set-context --current --namespace=app-namespace
+Context "minikube" modified.
+```
+
 
 ### Шаг 1. Развернём деплоймент
 
@@ -46,7 +54,61 @@ hello-node-697897c86-hqwpb   1/1     Running   0          28s
 
 **Ответ**:
 
+### Шаг 1. Создадим роль для "разрабочиков"
 
+В этой роли описываются права, с какими ресурсами и что можно делать
+```bash
+$ kubectl create role developers --verb=get,list --resource=pods,pods/log
+role.rbac.authorization.k8s.io/developers created
+```
+
+### Шаг 2. Создадим сервисный аккаунт для конкретного разрабочика
+
+Пусть его будут звать developer1, а также добавим ему токен и пропишем в конфиг
+```bash
+$ kubectl create serviceaccount developer1
+serviceaccount/developer1 created
+
+$ kubectl create token developer1
+eyJhbGciOiJSUzI1NiIsImtpZCI6InVOdUNyQm1ZQ3V5SFAwS052eUJ3bEJhRjJIZDAtTFQ0SFcwblVlcjBLQ0kifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjY1MjQ5MDA1LCJpYXQiOjE2NjUyNDU0MDUsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJhcHAtbmFtZXNwYWNlIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImRldmVsb3BlcjEiLCJ1aWQiOiIwMGNmMDNiMC1mZjRkLTQ2NWMtOTNlMy0xZmI4MzhlZWY0MWQifX0sIm5iZiI6MTY2NTI0NTQwNSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmFwcC1uYW1lc3BhY2U6ZGV2ZWxvcGVyMSJ9.CiTNtaA7zr2hjQK_bdSTwcIYWuB_-Me3kUM_SjES82-nDQoMQtav1briaJSeYeXtF1sc7WsBRe1gXPlerhHv1HKES6hNWbnf_R6__BI5Z_2eX5Fq9wnbQqwOTFePJmUnRyG2WWiDvwsjqhijSrLymerxIQLVos-6Nwp-keBI3fbFa4Jbn-Urx9ZFUVwqqEJwojfzBSAF2CzonyvKpDqPyaTCqwNCnpKJUhvuPCckxAzfd9ewd-DDuFX7q6bhqd-WQ6gP3cw77L2Z3mkn7jzhcaNWjLhUtQ78Bk2YA5V_-Qs68UUkH80gddbGtUapQAnSvsiyySddxSE1bFt8vbImeQ
+
+$ kubectl config set-credentials developer1 --token eyJhbGciOiJSUzI1NiIsImtpZCI6InVOdUNyQm1ZQ3V5SFAwS052eUJ3bEJhRjJIZDAtTFQ0SFcwblVlcjBLQ0kifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjY1MjQ5MDA1LCJpYXQiOjE2NjUyNDU0MDUsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJhcHAtbmFtZXNwYWNlIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImRldmVsb3BlcjEiLCJ1aWQiOiIwMGNmMDNiMC1mZjRkLTQ2NWMtOTNlMy0xZmI4MzhlZWY0MWQifX0sIm5iZiI6MTY2NTI0NTQwNSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmFwcC1uYW1lc3BhY2U6ZGV2ZWxvcGVyMSJ9.CiTNtaA7zr2hjQK_bdSTwcIYWuB_-Me3kUM_SjES82-nDQoMQtav1briaJSeYeXtF1sc7WsBRe1gXPlerhHv1HKES6hNWbnf_R6__BI5Z_2eX5Fq9wnbQqwOTFePJmUnRyG2WWiDvwsjqhijSrLymerxIQLVos-6Nwp-keBI3fbFa4Jbn-Urx9ZFUVwqqEJwojfzBSAF2CzonyvKpDqPyaTCqwNCnpKJUhvuPCckxAzfd9ewd-DDuFX7q6bhqd-WQ6gP3cw77L2Z3mkn7jzhcaNWjLhUtQ78Bk2YA5V_-Qs68UUkH80gddbGtUapQAnSvsiyySddxSE1bFt8vbImeQ
+User "developer1" set.
+```
+
+### Шаг 3. Назначим права
+
+Просто привяжем роль к конкретному аккаунту (namespace указывать обязательно)
+```bash
+$ kubectl create rolebinding dev1-binding --role=developers --serviceaccount=app-namespace:developer1
+rolebinding.rbac.authorization.k8s.io/dev1-binding created
+```
+
+### Шаг 4. Проверка
+
+Переключимся в аккаунт разработчика и проверим что ему можно
+```bash
+$ kubectl config set-context minikube --user developer1
+Context "minikube" modified.
+
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+hello-node-697897c86-pzkc2   1/1     Running   0          37m
+hello-node-697897c86-s99z4   1/1     Running   0          37m
+
+$ kubectl delete pod hello-node-697897c86-s99z4
+Error from server (Forbidden): pods "hello-node-697897c86-s99z4" is forbidden: User "system:serviceaccount:app-namespace:developer1" cannot delete resource "pods" in API group "" in the namespace "app-namespace"
+$ kubectl logs hello-node-697897c86-pzkc2
+$ kubectl describe pod hello-node-697897c86-s99z4
+Name:             hello-node-697897c86-s99z4
+Namespace:        app-namespace
+Priority:         0
+...
+
+$ kubectl config set-context minikube --user minikube
+Context "minikube" modified.
+```
+Смотреть ноды можно, а удалять нельзя - всё как планировали
 
 ## Задание 3: Изменение количества реплик 
 >Поработав с приложением, вы получили запрос на увеличение количества реплик приложения для нагрузки. Необходимо изменить запущенный deployment, увеличив количество реплик до 5. Посмотрите статус запущенных подов после увеличения реплик. 
@@ -56,4 +118,5 @@ hello-node-697897c86-hqwpb   1/1     Running   0          28s
 > * проверить что все поды перешли в статус running (kubectl get pods)
 
 **Ответ**:
+
 
