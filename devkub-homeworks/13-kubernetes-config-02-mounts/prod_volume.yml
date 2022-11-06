@@ -1,0 +1,56 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nfs-volume-claim
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend-volume
+spec:
+  containers:
+    - name: backend
+      image: roma4edu/netology_kube_backend:1.0
+      env:
+        - name: DATABASE_URL
+          value: postgres://postgres:postgres@db.stage.svc.cluster.local:5432/news
+      ports:
+        - containerPort: 9000
+      volumeMounts:
+        - mountPath: "/static"
+          name: my-volume
+  volumes:
+    - name: my-volume
+      persistentVolumeClaim:
+        claimName: nfs-volume-claim
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend-volume
+spec:
+  containers:
+    - name: frontend
+      image: roma4edu/netology_kube_frontend:1.0
+      ports:
+        - containerPort: 80
+      env:
+        - name: BASE_URL
+          value: http://localhost:9000
+      volumeMounts:
+        - mountPath: "/static"
+          name: my-volume
+  volumes:
+    - name: my-volume
+      persistentVolumeClaim:
+        claimName: nfs-volume-claim
