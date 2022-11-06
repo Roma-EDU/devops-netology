@@ -70,13 +70,13 @@ $ kubectl config view --minify -o jsonpath='{..namespace}'
 stage
 ```
 
-### Шаг 2. Описываем желаемую конфигурацию кластера
+### Шаг 2. Описываем желаемую конфигурацию stage-окружения
 
 * База данных: StatefulSet и Service для доступа к ней из бэкенда [stage_db.yml](./stage_db.yml)
   * URL сервиса формируется как `<service-name>.<namespace>.svc.cluster.local:<port>`
 * Приложение: Deployment одновременно frondend и backend [stage_main.yml](./stage_main.yml)
 
-### Шаг 3. Применяем конфигурацию к кластеру
+### Шаг 3. Применяем stage-конфигурацию к кластеру
 
 ```bash
 $ kubectl apply -f stage/stage_db.yml
@@ -113,7 +113,59 @@ statefulset.apps/db   1/1     95m
 
 **Ответ**:
 
-### Шаг 1. 
+### Шаг 1. Создаём namespace для prod окружения
+
+Создаём namespace и делаем его пространством имён по умолчанию
+
+```bash
+$ kubectl create namespace prod
+namespace/prod created
+$ kubectl config set-context --current --namespace=prod
+Context "yc-kubernates-cluster" modified.
+$ kubectl config view --minify -o jsonpath='{..namespace}'
+prod
+```
+
+### Шаг 2. Описываем желаемую конфигурацию prod-окружения
+
+* База данных: StatefulSet и Service для доступа к ней из бэкенда [prod_db.yml](./prod_db.yml) (в целом копия со stage)
+* Backend: Deployment для backend и Service к нему [prod_backend.yml](./prod_backend.yml)
+* Frontend: Deployment для frontend и Service к нему [prod_frontend.yml](./prod_frontend.yml)
+
+### Шаг 3. Применяем prod-конфигурацию к кластеру
+
+```bash
+$ kubectl apply -f prod/prod_db.yml
+statefulset.apps/db created
+service/db created
+$ kubectl apply -f prod/prod_backend.yml
+deployment.apps/backend created
+service/backend created
+$ kubectl apply -f prod/prod_frontend.yml
+deployment.apps/frontend created
+service/frontend created
+```
+
+И смотрим состояние
+```bash
+$ kubectl get pods,services,deployments,sts
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/backend-6fc4c48d4f-lp2dz    1/1     Running   0          66s
+pod/db-0                        1/1     Running   0          79s
+pod/frontend-6bc6d646c6-bb2p5   1/1     Running   0          51s
+
+NAME               TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/backend    ClusterIP   10.2.241.36    <none>        9000/TCP   67s
+service/db         ClusterIP   10.2.232.14    <none>        5432/TCP   79s
+service/frontend   ClusterIP   10.2.184.250   <none>        8000/TCP   52s
+
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backend    1/1     1            1           67s
+deployment.apps/frontend   1/1     1            1           52s
+
+NAME                  READY   AGE
+statefulset.apps/db   1/1     81s
+```
 
 
 ## ~Задание 3 (*): добавить endpoint на внешний ресурс api~
