@@ -110,3 +110,53 @@ drwxr-xr-x 1 root root 4096 Nov  6 12:25 ..
 >* все бекенды подключаются к одному PV в режиме ReadWriteMany;
 >* фронтенды тоже подключаются к этому же PV с таким же режимом;
 >* файлы, созданные бекендом, должны быть доступны фронту.
+
+
+### Шаг 1. Установка NFS сервера
+
+Ранее в подготовке был установлен NFS-сервер. Просто проверим, что он теперь доступен
+
+```bash
+$ kubectl get storageclasses.storage.k8s.io
+NAME                           PROVISIONER                                       RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+nfs                            cluster.local/nfs-server-nfs-server-provisioner   Delete          Immediate              true                   3h
+yc-network-hdd (default)       disk-csi-driver.mks.ycloud.io                     Delete          WaitForFirstConsumer   true                   2d5h
+yc-network-nvme                disk-csi-driver.mks.ycloud.io                     Delete          WaitForFirstConsumer   true                   2d5h
+yc-network-ssd                 disk-csi-driver.mks.ycloud.io                     Delete          WaitForFirstConsumer   true                   2d5h
+yc-network-ssd-nonreplicated   disk-csi-driver.mks.ycloud.io                     Delete          WaitForFirstConsumer   true                   2d5h
+```
+Имя StorageClass = nfs
+
+### Шаг 2. Пишем конфигурацию для prod-окружения
+
+Согласно требованиям создаём PersistentVolumeClaim с типом `nfs`, произвольным уникальным именем `nfs-volume-claim` и типом доступа `ReadWriteMany`.
+И подключаем его к контейнерам backend и frontend. В итоге конфигурация выглядит так: [prod_volume.yml](./prod_volume.yml)
+
+### Шаг 3. Применим конфигурацию на prod
+
+```bash
+$ kubectl config set-context --current --namespace=prod
+Context "yc-kubernates-cluster" modified.
+$ kubectl apply -f prod/prod_volume.yml
+persistentvolumeclaim/nfs-volume-claim created
+pod/backend-volume created
+pod/frontend-volume created
+$ kubectl get pods
+NAME                                  READY   STATUS    RESTARTS   AGE
+backend-volume                        1/1     Running   0          22s
+db-0                                  1/1     Running   0          3h34m
+frontend-volume                       1/1     Running   0          21s
+nfs-server-nfs-server-provisioner-0   1/1     Running   0          3h15m
+```
+
+И проверим, что данные передаются через общую папку `static`
+```bash
+$ kubectl exec frontend-volume -- ls -la /static
+total 8
+drwxrwsrwx 2 root root 4096 Nov  6 13:49 .
+drwxr-xr-x 1 root root 4096 Nov  6 13:49 ..
+$ kubectl exec backend-volume -- sh -c 'echo some_data > /static/data.txt'
+$ kubectl exec frontend-volume -- cat /static/data.txt
+some_data
+```
+Видно, что frontend'у стали доступны данные, записанные на backend в файлик /static/data.txt
