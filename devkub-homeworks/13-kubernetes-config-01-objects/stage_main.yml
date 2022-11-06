@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: main
+  name: main
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main
+  template:
+    metadata:
+      labels:
+        app: main
+    spec:
+      containers:
+        - image: roma4edu/netology_kube_frontend:1.0
+          name: frontend
+          ports:
+            - containerPort: 80
+          env:
+            - name: BASE_URL
+              value: http://localhost:9000
+        - image: roma4edu/netology_kube_backend:1.0
+          name: backend
+          env:
+            - name: DATABASE_URL
+              value: postgres://postgres:postgres@db.stage.svc.cluster.local:5432/news
+          ports:
+            - containerPort: 9000
+      restartPolicy: Always
