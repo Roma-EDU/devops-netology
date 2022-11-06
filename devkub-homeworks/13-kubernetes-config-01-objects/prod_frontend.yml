@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - image: roma4edu/netology_kube_frontend:1.0
+          name: frontend
+          ports:
+            - containerPort: 80
+          env:
+            - name: BASE_URL
+              value: http://backend.prod.svc.cluster.local:9000
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: frontend
+  name: frontend
+spec:
+  ports:
+    - name: frontend
+      port: 8000
+      targetPort: 80
+  selector:
+    app: frontend
+  type: ClusterIP

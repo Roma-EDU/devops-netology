@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - image: roma4edu/netology_kube_backend:1.0
+          name: backend
+          env:
+            - name: DATABASE_URL
+              value: postgres://postgres:postgres@db.prod.svc.cluster.local:5432/news
+          ports:
+            - containerPort: 9000
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: backend
+  name: backend
+spec:
+  ports:
+    - name: backend
+      port: 9000
+      targetPort: 9000
+  selector:
+    app: backend
+  type: ClusterIP
