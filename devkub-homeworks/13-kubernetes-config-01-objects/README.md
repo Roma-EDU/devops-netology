@@ -57,7 +57,51 @@ To access clusters using the Kubernetes API, please use Kubernetes Service Accou
 
 **Ответ**:
 
-### Шаг 1. 
+### Шаг 1. Создаём namespace для stage окружения
+
+Создаём namespace и делаем его пространством имён по умолчанию
+
+```bash
+$ kubectl create namespace stage
+namespace/stage created
+$ kubectl config set-context --current --namespace=stage
+Context "yc-kubernates-cluster" modified.
+$ kubectl config view --minify -o jsonpath='{..namespace}'
+stage
+```
+
+### Шаг 2. Описываем желаемую конфигурацию кластера
+
+* База данных: StatefulSet и Service для доступа к ней из бэкенда [stage_db.yml](./stage_db.yml)
+  * URL сервиса формируется как `<service-name>.<namespace>.svc.cluster.local:<port>`
+* Приложение: Deployment одновременно frondend и backend [stage_main.yml](./stage_main.yml)
+
+### Шаг 3. Применяем конфигурацию к кластеру
+
+```bash
+$ kubectl apply -f stage/stage_db.yml
+statefulset.apps/db created
+service/db created
+$ kubectl apply -f stage/stage_main.yml
+deployment.apps/main created
+```
+
+И смотрим состояние
+```bash
+$ kubectl get pods,services,deployments,sts
+NAME                        READY   STATUS    RESTARTS   AGE
+pod/db-0                    1/1     Running   0          95m
+pod/main-856dffc955-jbkl6   2/2     Running   0          94m
+
+NAME         TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+service/db   ClusterIP   10.2.165.52   <none>        5432/TCP   95m
+
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/main   1/1     1            1           94m
+
+NAME                  READY   AGE
+statefulset.apps/db   1/1     95m
+```
 
 
 ## Задание 2: подготовить конфиг для production окружения
