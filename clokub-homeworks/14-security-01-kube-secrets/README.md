@@ -213,3 +213,68 @@ type: kubernetes.io/tls
 
 >Выберите любимый образ контейнера, подключите секреты и проверьте их доступность
 >как в виде переменных окружения, так и в виде примонтированного тома.
+
+### Шаг 1. Использование в виде переменных окружения
+
+Подробности в [документации](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/)
+
+Создадим секреты (имя пользователя и пароль)
+```bash
+$ kubectl create secret generic my-secret --from-literal=user-name='my-user' --from-literal=password='pwd123'
+```
+
+И воспользуемся ими через переменные окружения
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-secrets-pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    env:
+    - name: DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: user-name
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: password
+```
+
+
+### Шаг 2. Использование в виде примонтированного тома
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    - containerPort: 443
+      protocol: TCP
+    volumeMounts:
+    - name: certs
+      mountPath: "/etc/nginx/ssl"
+      readOnly: true
+    - name: config
+      mountPath: /etc/nginx/conf.d
+      readOnly: true
+  volumes:
+  - name: certs
+    secret:
+      secretName: domain-cert
+  - name: config
+    configMap:
+    name: nginx-config
+```
