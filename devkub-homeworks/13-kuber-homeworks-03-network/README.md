@@ -1,14 +1,14 @@
 # 13.3. Как работает сеть в K8s
 
->### Цель задания
+>## Цель задания
 >
 >Настроить сетевую политику доступа к подам.
 >
->### Чеклист готовности к домашнему заданию
+>## Чеклист готовности к домашнему заданию
 >
 >1. Кластер K8s с установленным сетевым плагином Calico.
 >
->### Инструменты и дополнительные материалы, которые пригодятся для выполнения задания
+>## Инструменты и дополнительные материалы, которые пригодятся для выполнения задания
 >
 >1. [Документация Calico](https://www.tigera.io/project-calico/).
 >2. [Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/).
@@ -108,7 +108,7 @@ $ minikube start --network-plugin=cni --cni=calico
 ```
 
 
-### Задание 1. Создать сетевую политику или несколько политик для обеспечения доступа
+## Задание 1. Создать сетевую политику или несколько политик для обеспечения доступа
 
 >1. Создать deployment'ы приложений frontend, backend и cache и соответсвующие сервисы.
 >2. В качестве образа использовать network-multitool.
@@ -116,3 +116,49 @@ $ minikube start --network-plugin=cni --cni=calico
 >4. Создать политики, чтобы обеспечить доступ frontend -> backend -> cache. Другие виды подключений должны быть запрещены.
 >5. Продемонстрировать, что трафик разрешён и запрещён.
 
+### Шаг 1. Подготовим манифесты с необходимыми Deployment и Service
+
+1. Для каждого приложения создадим отдельный deployment и соответствующий ему сервис [frontend](./frontend.yml), [backend](./backend.yml) и [cache](cache.yml). В качестве тестового образа используем последнуюю версию network-multitool (см. в манифесте `image: praqma/network-multitool`)
+2. Создадим нужный нам namespace `app` и переключимся в него
+   ```bash
+   $ minikube kubectl -- create namespace app
+   $ minikube kubectl -- config set-context --current --namespace=app
+   ```
+3. Перейдём в папку с манифестами и применим их
+   ```bash
+   $ cd /vagrant/13-kuber-homeworks-03-network/
+   $ minikube kubectl -- apply -f cache.yml
+   deployment.apps/cache created
+   service/cache created
+   $ minikube kubectl -- apply -f backend.yml
+   deployment.apps/backend created
+   service/backend created
+   $ minikube kubectl -- apply -f frontend.yml
+   deployment.apps/frontend created
+   service/frontend created
+   ```
+4. Проверим поды и сервисы
+   ```bash
+   $ minikube kubectl -- get pods -A
+   NAMESPACE     NAME                                      READY   STATUS    RESTARTS      AGE
+   app           backend-686f89dbc-mrllj                   1/1     Running   1 (21m ago)   89m
+   app           cache-56498cc6c5-p2wch                    1/1     Running   1 (21m ago)   85m
+   app           frontend-7db459d997-vqdq9                 1/1     Running   1 (21m ago)   142m
+   kube-system   calico-kube-controllers-7bdbfc669-28h8n   1/1     Running   2 (21m ago)   9h
+   kube-system   calico-node-fmtzm                         1/1     Running   1 (21m ago)   9h
+   kube-system   coredns-787d4945fb-779wq                  1/1     Running   3 (21m ago)   9h
+   kube-system   etcd-minikube                             1/1     Running   1 (21m ago)   9h
+   kube-system   kube-apiserver-minikube                   1/1     Running   1 (21m ago)   9h
+   kube-system   kube-controller-manager-minikube          1/1     Running   1 (21m ago)   9h
+   kube-system   kube-proxy-dvpv8                          1/1     Running   1 (21m ago)   9h
+   kube-system   kube-scheduler-minikube                   1/1     Running   1 (21m ago)   9h
+   kube-system   storage-provisioner                       1/1     Running   3 (19m ago)   9h
+
+   $ minikube kubectl -- get services -A
+   NAMESPACE     NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+   app           backend      ClusterIP   10.96.99.196     <none>        80/TCP                   143m
+   app           cache        ClusterIP   10.101.79.186    <none>        80/TCP                   143m
+   app           frontend     ClusterIP   10.98.145.215    <none>        80/TCP                   144m
+   default       kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP                  9h
+   kube-system   kube-dns     ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP   9h
+   ```
