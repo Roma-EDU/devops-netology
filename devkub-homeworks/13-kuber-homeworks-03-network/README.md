@@ -122,7 +122,9 @@ $ minikube start --network-plugin=cni --cni=calico
 2. Создадим нужный нам namespace `app` и переключимся в него
    ```bash
    $ minikube kubectl -- create namespace app
+   namespace/app created
    $ minikube kubectl -- config set-context --current --namespace=app
+   Context "minikube" modified.
    ```
 3. Перейдём в папку с манифестами и применим их
    ```bash
@@ -162,3 +164,29 @@ $ minikube start --network-plugin=cni --cni=calico
    default       kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP                  9h
    kube-system   kube-dns     ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP   9h
    ```
+
+### Шаг 2. Добавим network-policy
+
+1. Создадим манифест [network-policy](./network-policy.yml), запрещающий все [входящие] подключения, кроме frontent->backend и backend->cache
+2. Применим его
+   ```bash
+   $ minikube kubectl -- apply -f network-policy.yml
+   networkpolicy.networking.k8s.io/deny-all created
+   networkpolicy.networking.k8s.io/allow-backend-to-cache created
+   networkpolicy.networking.k8s.io/allow-frontend-to-backend created
+   ```
+3. Проверим, что доступы работают. Для этого зайдём в pod backend'а и попробуем с помощью curl достучаться к сервисам cache и frontend
+   ```bash
+   $ minikube kubectl -- exec backend-686f89dbc-mrllj -it -- /bin/sh
+   / # curl cache.app.svc.cluster.local
+   Praqma Network MultiTool (with NGINX) - cache-56498cc6c5-p2wch - 10.244.120.76 - HTTP: 80 , HTTPS: 443
+   <br>
+   ...
+   / # curl frontend.app.svc.cluster.local
+   <ответа нет>
+   ^C
+   ```
+
+Заметки:
+* Имя сервиса формируется так: `<service-name>.<namespace>.svc.cluster.local:<service-port>`
+* Выйти из консоли внутри пода `Ctrl+P`, `Ctrl+Q`
