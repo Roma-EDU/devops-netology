@@ -186,6 +186,19 @@ $ minikube start --network-plugin=cni --cni=calico
    <ответа нет>
    ^C
    ```
+4. Остановим всё
+   ```bash
+   $ minikube stop
+   ✋  Stopping node "minikube"  ...
+   🛑  Powering off "minikube" via SSH ...
+   🛑  1 node stopped.
+   $ exit
+   logout
+   Connection to 127.0.0.1 closed.
+   
+   >vagrant halt
+   ==> default: Attempting graceful shutdown of VM...
+   ```
 
 Заметки:
 * Имя сервиса формируется так: `<service-name>.<namespace>.svc.cluster.local:<service-port>`
