@@ -211,7 +211,7 @@ main-c978bdc99-68k7f   1/1     Running   0          6s
 main-c978bdc99-cbbmm   1/1     Running   0          39m
 main-c978bdc99-gc4jr   1/1     Running   0          6s
 main-c978bdc99-jgtxx   1/1     Running   0          39m
-``
+```
 
 ### Шаг 5*. Останавливаем кластер
 
