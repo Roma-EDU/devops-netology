@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-consumer
+  namespace: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-consumer
+  template:
+    metadata:
+      labels:
+        app: web-consumer
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - while true; do curl auth-db.data.svc.cluster.local; sleep 5; done
+        image: radial/busyboxplus:curl
+        name: busybox
