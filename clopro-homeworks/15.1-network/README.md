@@ -236,6 +236,31 @@ PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 --- 8.8.8.8 ping statistics ---
 3 packets transmitted, 3 received, 0% packet loss, time 2003ms
 rtt min/avg/max/mdev = 20.797/21.039/21.453/0.293 ms
+ubuntu@fhm66ggr0e0fhtcea9br:~$ exit
+logout
+Connection to 192.168.20.4 closed.
+ubuntu@fhmujt8du6umb3fp85q1:~$ exit
+logout
+Connection to 158.160.52.236 closed.
 ```
 
 Видим, что доступ в интернет с обоих машин есть
+
+### Шаг 4*. Убираем всё с Yandex Cloud (чтобы не расходовать бюджет)
+
+```bash
+$ terraform destroy -auto-approve
+yandex_vpc_network.network-1: Refreshing state... [id=enpuu35i3fko0otqqvhf]
+yandex_vpc_subnet.subnet-public-1: Refreshing state... [id=e9b5v384j7krgfm2o7i6]
+yandex_compute_instance.nat-vm-1: Refreshing state... [id=fhmhot5qpqjsjs9an871]
+yandex_compute_instance.public-vm-1: Refreshing state... [id=fhmujt8du6umb3fp85q1]
+yandex_vpc_route_table.nat-instance-route: Refreshing state... [id=enpjtd3p9j0ibkns2up8]
+yandex_vpc_subnet.subnet-private-1: Refreshing state... [id=e9bdud8nq1l8epao9l9u]
+yandex_compute_instance.private-vm-1: Refreshing state... [id=fhm66ggr0e0fhtcea9br]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  - destroy
+...
+Destroy complete! Resources: 7 destroyed.
+```
