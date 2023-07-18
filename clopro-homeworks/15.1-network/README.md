@@ -189,6 +189,9 @@ internal_ip_address_private-vm-1 = "192.168.20.4"
 internal_ip_address_public-vm-1 = "192.168.10.19"
 ```
 
+![image](https://github.com/Roma-EDU/devops-netology/assets/77544263/a990d3b5-f981-46a3-adc3-2682bed474e2)
+
+
 ### Шаг 3. Проверяем доступ в интернет
 
 Подключаемся к инстансу из публичной подсети и проверяем его доступ в интернет `ping 8.8.8.8`
