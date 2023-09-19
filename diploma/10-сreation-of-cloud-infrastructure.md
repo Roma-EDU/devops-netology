@@ -3,9 +3,9 @@
 * Дипломный проект будет выполняться с помощью виртуальной машины на актуальной в данный момент Ubuntu 22.04.3 LTS, запущенной с помощью `vagrant`. 
 * Содержимое вывода результата команд в некоторых случаях будет сокращаться с помощью `...` на отдельной строке, чтобы не отвлекать от основных действий
 
-## 1. Подготавливаем рабочего окружения
+## 0. Подготавливаем рабочего окружения
 
-### 1.1. Создаём виртуальную машину
+### 0.1. Создаём виртуальную машину
 
 Содержимое Vagrantfile:
 ```ruby
@@ -32,7 +32,7 @@ Bringing machine 'default' up with 'virtualbox' provider...
 Welcome to Ubuntu 22.04.3 LTS (GNU/Linux 5.15.0-83-generic x86_64)
 ```
 
-### 1.2. Устанавливаем Terraform
+### 0.2. Устанавливаем Terraform
 
 Согласно [инструкции](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart) скачиваем с зеркала 
 подходящую версию terraform (актуальная на сегодня terraform_1.5.7_linux_amd64.zip), распаковываем, копируем в папку "с программами"
@@ -45,7 +45,7 @@ Terraform v1.5.7
 on linux_amd64
 ```
 
-### 1.3. Устанавливаем Yandex Cloud CLI
+### 0.3. Устанавливаем Yandex Cloud CLI
 
 ```bash
 $ curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
@@ -65,7 +65,7 @@ $ yc --version
 Yandex Cloud CLI 0.110.0 linux/amd64
 ```
 
-### 1.4. Конфигурируем Yandex Cloud CLI
+### 0.4. Конфигурируем Yandex Cloud CLI
 
 Инициализируем Yandex Cloud CLI
 ```bash
@@ -91,7 +91,14 @@ Please enter your numeric choice: 1
 Your profile default Compute zone has been set to 'ru-central1-a'.
 ```
 
-И создаём файлик для сервисного аккаунта (сам аккаунт уже создан в WEB-консоли с ролью `editor`)
+## 1. Создаём сервисный аккаунт
+
+1. В [веб-консоли](https://console.cloud.yandex.ru/cloud?section=overview) переходим в рабочий каталог `netology`. 
+2. Переходим на вкладку "Сервисный аккаунты" и жмём кнопку в правом верхнем углу "Создать сервисный аккаунт".
+3. Указываем имя `terraform-service-account` и роль `editor`, жмём создать.
+4. Кликаем по получившейся записи и узнаём идентификатор `aje16dilsetnl7cjm5na`.
+
+Затем возвращаемся в терминал Linux и создаём файлик `/vagrant/secrets/key.json` с ключами для terraform'а
 ```bash
 $  yc iam key create --service-account-id aje16dilsetnl7cjm5na --output /vagrant/secrets/key.json
 id: aje38rabdn1ju4314q8d
@@ -99,3 +106,10 @@ service_account_id: aje16dilsetnl7cjm5na
 created_at: "2023-09-19T21:04:17.994621273Z"
 key_algorithm: RSA_2048
 ```
+
+## 2. Подготавливаем бэкэнд в S3 Yandex Cloud для хранения состояния инфраструктуры
+
+Пользуемся официальной документацией [Загрузка состояний Terraform в Object Storage](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-state-storage)
+
+1. Возвращаемся в веб-консоль
+2. Создаём `Object Storage` с уникальным именем `terraform-state-storage` (думаю 5 Гб хватит на хранение состояний)
