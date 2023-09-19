@@ -16,6 +16,7 @@
 * [Установка и настройка CI/CD](#установка-и-настройка-cicd)
 
 ### Создание облачной инфраструктуры
+Подробности выполнения см. [10-сreation-of-cloud-infrastructure.md](./10-сreation-of-cloud-infrastructure.md)
 
 >Для начала необходимо подготовить облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
 >
