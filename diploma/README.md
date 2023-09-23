@@ -11,7 +11,7 @@
 ## Этапы выполнения
 
 ### 1. Создание облачной инфраструктуры
-Подробности выполнения см. [10-сreation-of-cloud-infrastructure.md](./10-сreation-of-cloud-infrastructure.md)
+Подробности выполнения см. [1-сreation-of-cloud-infrastructure.md](./1-сreation-of-cloud-infrastructure.md)
 
 >Для начала необходимо подготовить облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
 >
