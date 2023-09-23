@@ -151,5 +151,22 @@ $ chmod +x /vagrant/secrets/env.sh
 1. Переходим в веб-консоль и создаём `Object Storage` с уникальным именем `terraform-state-storage-diploma` (думаю 5 Гб хватит на хранение состояний)
 2. В терминале проинициализируем переменные окружения
    ```bash
-   $ /vagrant/secrets/env.sh
+   $ . /vagrant/secrets/env.sh
+   ```
+3. Заполняем базовые настройки terraform (required_providers и provider) плюс блок backend и проверяем работоспособность
+   ```bash
+   $ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
+
+   Initializing the backend...
+
+   Successfully configured the backend "s3"! Terraform will automatically
+   use this backend unless the backend configuration changes.
+
+   Initializing provider plugins...
+   - Finding latest version of yandex-cloud/yandex...
+   - Installing yandex-cloud/yandex v0.99.0...
+   - Installed yandex-cloud/yandex v0.99.0 (self-signed, key ID E40F590B50BB8E40)
+   ...
+   Terraform has been successfully initialized!
+   ...
    ```
