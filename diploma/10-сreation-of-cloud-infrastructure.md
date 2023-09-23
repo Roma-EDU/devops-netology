@@ -91,6 +91,22 @@ Please enter your numeric choice: 1
 Your profile default Compute zone has been set to 'ru-central1-a'.
 ```
 
+### 0.5. Генерируем ssh ключ
+
+```bash
+$ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/vagrant/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/vagrant/.ssh/id_rsa
+Your public key has been saved in /home/vagrant/.ssh/id_rsa.pub
+...
+$ ls ~/.ssh
+authorized_keys  id_rsa  id_rsa.pub
+```
+
+
 ## 1. Создаём сервисный аккаунт
 
 1. В [веб-консоли](https://console.cloud.yandex.ru/cloud?section=overview) переходим в рабочий каталог `netology`. 
@@ -107,9 +123,33 @@ created_at: "2023-09-19T21:04:17.994621273Z"
 key_algorithm: RSA_2048
 ```
 
+И статические ключи доступа:
+```bash
+$ yc iam access-key create --service-account-name terraform-service-account --description "terraform state bucket access key"
+access_key:
+  id: ajerndpqtfqimkv1qvp5
+  service_account_id: aje16dilsetnl7cjm5na
+  created_at: "2023-09-23T15:58:56.308454274Z"
+  description: terraform state bucket access key
+  key_id: <MY_ACCESS_KEY>
+secret: <MY_SECRET_KEY>
+```
+Ключ отображается только в момент создания, поэтому сохраним его (в скрипте `/vagrant/secrets/env.sh` для задания переменной окружения)
+```bash
+export ACCESS_KEY="<MY_ACCESS_KEY>"
+export SECRET_KEY="<MY_SECRET_KEY>"
+```
+И выдадим ему права на исполнение
+```bash
+$ chmod +x /vagrant/secrets/env.sh
+```
+
 ## 2. Подготавливаем бэкэнд в S3 Yandex Cloud для хранения состояния инфраструктуры
 
 Пользуемся официальной документацией [Загрузка состояний Terraform в Object Storage](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-state-storage)
 
-1. Возвращаемся в веб-консоль
-2. Создаём `Object Storage` с уникальным именем `terraform-state-storage` (думаю 5 Гб хватит на хранение состояний)
+1. Переходим в веб-консоль и создаём `Object Storage` с уникальным именем `terraform-state-storage-diploma` (думаю 5 Гб хватит на хранение состояний)
+2. В терминале проинициализируем переменные окружения
+   ```bash
+   $ /vagrant/secrets/env.sh
+   ```
