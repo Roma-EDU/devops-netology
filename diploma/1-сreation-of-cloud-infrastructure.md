@@ -153,7 +153,7 @@ $ chmod +x /vagrant/secrets/env.sh
    ```bash
    $ . /vagrant/secrets/env.sh
    ```
-3. Заполняем базовые настройки terraform (required_providers и provider) плюс блок backend и проверяем работоспособность
+3. Заполняем базовые настройки terraform (`required_providers` и `provider`) плюс настроенный блок `backend` и проверяем работоспособность
    ```bash
    $ terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
 
@@ -170,3 +170,28 @@ $ chmod +x /vagrant/secrets/env.sh
    Terraform has been successfully initialized!
    ...
    ```
+   Видим сообщение об успешной конфигурации нашего бэкэнда
+
+
+## 3. Настраиваем workspaces
+
+Добавим два новых workspace: `prod` и `stage` (`default` трогать не будем)
+```bash
+$ terraform workspace new prod
+Created and switched to workspace "prod"!
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "terraform plan" Terraform will not see any existing state
+for this configuration.
+$ terraform workspace new stage
+Created and switched to workspace "stage"!
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "terraform plan" Terraform will not see any existing state
+for this configuration.
+$ terraform workspace list
+  default
+  prod
+* stage
+```
+P.S. Если зайти на Object Storage, то там увидим папку `env:`, внутри которой появились подпапки, соответствующие workspace, а именно `prod` и `stage`
