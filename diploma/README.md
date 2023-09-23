@@ -13,6 +13,8 @@
 ### 1. Создание облачной инфраструктуры
 Подробности выполнения см. [1-сreation-of-cloud-infrastructure.md](./1-сreation-of-cloud-infrastructure.md)
 
+Отдельный репозиторий с кодом поднятия инфраструктуры [diploma-infrastructure](https://github.com/Roma-EDU/diploma-infrastructure)
+
 >Для начала необходимо подготовить облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
 >
 >Особенности выполнения:
