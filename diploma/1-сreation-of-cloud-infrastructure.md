@@ -102,8 +102,16 @@ Enter same passphrase again:
 Your identification has been saved in /home/vagrant/.ssh/id_rsa
 Your public key has been saved in /home/vagrant/.ssh/id_rsa.pub
 ...
+$ ssh-keygen -t ed25519
+Generating public/private ed25519 key pair.
+Enter file in which to save the key (/home/vagrant/.ssh/id_ed25519):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/vagrant/.ssh/id_ed25519
+Your public key has been saved in /home/vagrant/.ssh/id_ed25519.pub
+...
 $ ls ~/.ssh
-authorized_keys  id_rsa  id_rsa.pub
+authorized_keys  id_ed25519  id_ed25519.pub  id_rsa  id_rsa.pub
 ```
 
 
@@ -195,3 +203,113 @@ $ terraform workspace list
 * stage
 ```
 P.S. Если зайти на Object Storage, то там увидим папку `env:`, внутри которой появились подпапки, соответствующие workspace, а именно `prod` и `stage`
+
+## 4. Создаём VPC и подсети в разных зонах доступности
+
+Сконфигурировать сеть можно вручную либо с помощью terraform'а. Воспользуемся вторым вариантом, добавив файл `network.tf`. 
+Но есть нюанс: поскольку Yandex.Cloud разрешает создавать только 1 VPC на аккаунт, то либо её настройка между `prod` и `stage` будет в полуручном режиме (создали в одном окружении, затем в другом импортировали), либо исключим создание корневой VPC из terraform'а. Решим позже, как будет удобнее.
+
+## 5 и 6. Проверяем работоспособность текущей конфигурации
+
+Применяем текущую конфигурацию
+```bash
+$ terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # yandex_vpc_network.main-network will be created
+...
+
+$ terraform apply -auto-approve
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+...
+yandex_vpc_subnet.subnet-a: Creation complete after 2s [id=e9berh37128pqubi7bkd]
+yandex_vpc_subnet.subnet-b: Creation complete after 3s [id=e2l2elf9shnilj0mp8fe]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+$ terraform workspace select prod
+Switched to workspace "prod".
+$ terraform import yandex_vpc_network.main-network enp7mjco8q66ss8vafh0
+yandex_vpc_network.main-network: Importing from ID "enp7mjco8q66ss8vafh0"...
+yandex_vpc_network.main-network: Import prepared!
+  Prepared yandex_vpc_network for import
+yandex_vpc_network.main-network: Refreshing state... [id=enp7mjco8q66ss8vafh0]
+
+Import successful!
+
+The resources that were imported are shown above. These resources are now in
+your Terraform state and will henceforth be managed by Terraform.
+
+$ terraform apply -auto-approve
+yandex_vpc_network.main-network: Refreshing state... [id=enp7mjco8q66ss8vafh0]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+
+Terraform will perform the following actions:
+...
+Plan: 2 to add, 0 to change, 0 to destroy.
+yandex_vpc_subnet.subnet-a: Creating...
+yandex_vpc_subnet.subnet-b: Creating...
+yandex_vpc_subnet.subnet-a: Creation complete after 2s [id=e9berh37128pqubi7bkd]
+yandex_vpc_subnet.subnet-b: Creation complete after 3s [id=e2l2elf9shnilj0mp8fe]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+```
+
+Заходим в Object Storage и проверяем размеры файла `terraform-state-storage-diploma/env:/stage/states/terraform.tfstate`. Вместо начального значения в 180 байт показывает 3 Кб, что говорит об успешной записи в него актуальной конфигурации.
+
+Удаляем ресурсы
+```bash
+$ terraform destroy -auto-approve
+yandex_vpc_network.main-network: Refreshing state... [id=enp7mjco8q66ss8vafh0]
+yandex_vpc_subnet.subnet-b: Refreshing state... [id=e2l2elf9shnilj0mp8fe]
+yandex_vpc_subnet.subnet-a: Refreshing state... [id=e9berh37128pqubi7bkd]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  - destroy
+...
+Plan: 0 to add, 0 to change, 3 to destroy.
+yandex_vpc_subnet.subnet-b: Destroying... [id=e2l2elf9shnilj0mp8fe]
+yandex_vpc_subnet.subnet-a: Destroying... [id=e9berh37128pqubi7bkd]
+yandex_vpc_subnet.subnet-a: Destruction complete after 2s
+yandex_vpc_subnet.subnet-b: Destruction complete after 3s
+yandex_vpc_network.main-network: Destroying... [id=enp7mjco8q66ss8vafh0]
+│ Error: error reading Network "diploma-network": server-request-id = c5793c32-02a8-4845-8139-4a157b0e25c9
+| server-trace-id = d11df470e5b2abf4:5550bd05b5e6263b:d11df470e5b2abf4:1 
+| client-request-id = bfd7806f-f303-4257-945d-98ff4bcb1810
+| client-trace-id = ede3e589-36e3-4559-89c9-a803df263704 
+| rpc error: code = FailedPrecondition desc = Network enp7mjco8q66ss8vafh0 is not empty
+
+$ terraform workspace select stage
+Switched to workspace "stage".
+$ terraform destroy -auto-approve
+yandex_vpc_network.main-network: Refreshing state... [id=enp7mjco8q66ss8vafh0]
+yandex_vpc_subnet.subnet-b: Refreshing state... [id=e2lpso10jebuac4gesdd]
+yandex_vpc_subnet.subnet-a: Refreshing state... [id=e9b5bl7ve0oop1sdragq]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the
+following symbols:
+  - destroy
+...
+Plan: 0 to add, 0 to change, 3 to destroy.
+yandex_vpc_subnet.subnet-a: Destroying... [id=e9b5bl7ve0oop1sdragq]
+yandex_vpc_subnet.subnet-b: Destroying... [id=e2lpso10jebuac4gesdd]
+yandex_vpc_subnet.subnet-a: Destruction complete after 3s
+yandex_vpc_subnet.subnet-b: Destruction complete after 3s
+yandex_vpc_network.main-network: Destroying... [id=enp7mjco8q66ss8vafh0]
+yandex_vpc_network.main-network: Destruction complete after 1s
+
+Destroy complete! Resources: 3 destroyed.
+```
+
+Всё в целом прошло успешно, кроме ожидаемое проблемы с корневой VPC (при полной очистке всей инфраструктуры в первом окружении она не удалилась, поскольку были внутренние подсети - из второго окружения; когда удаляли второе окружение - очистка прошла успешно).
