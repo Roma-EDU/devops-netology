@@ -13,7 +13,8 @@
 ### 1. Создание облачной инфраструктуры
 Подробности выполнения см. [1-сreation-of-cloud-infrastructure.md](./1-сreation-of-cloud-infrastructure.md)
 
-Отдельный репозиторий с кодом поднятия инфраструктуры [diploma-infrastructure](https://github.com/Roma-EDU/diploma-infrastructure)
+1. [x] Отдельный репозиторий с кодом поднятия инфраструктуры [diploma-infrastructure](https://github.com/Roma-EDU/diploma-infrastructure)
+2. [x] Инфраструктура поднимается/удаляется с помощью команд `terraform apply -auto-aprove` и `terrafrom destroy -auto-aprove`
 
 >Для начала необходимо подготовить облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
 >
@@ -63,6 +64,9 @@
 
 ---
 ### 3. Создание тестового приложения
+
+1. [x] Репозиторий с тестовым приложением [diploma-app](https://github.com/Roma-EDU/diploma-app) (и [Dockerfile](https://github.com/Roma-EDU/diploma-app/blob/master/Dockerfile) в нём)
+2. [x] DockerHub с собранным docker image [roma4edu/diploma_app](https://hub.docker.com/repository/docker/roma4edu/diploma_app/general)
 
 >Для перехода к следующему этапу необходимо подготовить тестовое приложение, эмулирующее основное приложение разрабатываемое вашей компанией.
 >
