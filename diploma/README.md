@@ -44,6 +44,8 @@
 ---
 ### 2. Создание Kubernetes кластера
 
+Подробности выполнения см. [2-creation-of-kubernetes-cluster.md](./2-creation-of-kubernetes-cluster.md)
+
 >На этом этапе необходимо создать [Kubernetes](https://kubernetes.io/ru/docs/concepts/overview/what-is-kubernetes/) кластер на базе предварительно созданной инфраструктуры.   Требуется обеспечить доступ к ресурсам из Интернета.
 >
 >Это можно сделать двумя способами:
