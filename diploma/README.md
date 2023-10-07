@@ -46,6 +46,17 @@
 
 Подробности выполнения см. [2-creation-of-kubernetes-cluster.md](./2-creation-of-kubernetes-cluster.md)
 
+1. [x] Тот же репозиторий с кодом поднятия инфраструктуры [diploma-infrastructure](https://github.com/Roma-EDU/diploma-infrastructure) (папки automation и kubespray)
+2. [x] Работоспособный Kubernetes кластер поднимается `. build.sh` и убирается `. destroy.sh` в одно действие
+3. [x] Команды `kubectl get nodes` и `kubectl get pods --all-namespaces` отрабатывают без ошибок
+```bash
+$ kubectl get nodes -o wide
+NAME             STATUS   ROLES           AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+stage-master-1   Ready    control-plane   107m   v1.28.2   10.10.1.26    <none>        Ubuntu 22.04.3 LTS   5.15.0-84-generic   docker://20.10.20
+stage-worker-1   Ready    <none>          106m   v1.28.2   10.10.0.20    <none>        Ubuntu 22.04.3 LTS   5.15.0-84-generic   docker://20.10.20
+stage-worker-2   Ready    <none>          106m   v1.28.2   10.10.1.6     <none>        Ubuntu 22.04.3 LTS   5.15.0-84-generic   docker://20.10.20
+```
+
 >На этом этапе необходимо создать [Kubernetes](https://kubernetes.io/ru/docs/concepts/overview/what-is-kubernetes/) кластер на базе предварительно созданной инфраструктуры.   Требуется обеспечить доступ к ресурсам из Интернета.
 >
 >Это можно сделать двумя способами:
