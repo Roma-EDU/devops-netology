@@ -36,11 +36,51 @@ $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 ## 2. Подготовка ansible конфигурации
 
-Копируем файл  
+Переходим в папку со скачанным репозиторием kubespray, копируем оттуда файл `k8s-cluster.yml` 
+```bash
+$ cd /vagrant/kubespray
+$ cp inventory/sample/group_vars/k8s_cluster/k8s-cluster.yml ../automation/k8s-cluster.yml
+```
+и настраиваем копию согласно нашим пожеланиям, а именно меняем/раскомментируем параметры:
+* используем docker `container_manager: docker`
+* понадобится локальная копию конфига: `kubeconfig_localhost: true`
+* понадобится подключение снаружи: `supplementary_addresses_in_ssl_keys: [MASTER_PUBLIC_IPS_TO_REPLACE]` (IP адрес будет подставлен позже)
 
+Кроме того, нам понадобится корректное формирование `hosts.yaml`, поэтому также копируем файл `inventory.py`
+```bash
+$ cp contrib/inventory_builder/inventory.py ../automation/inventory.py
+$ cp contrib/inventory_builder/requirements.txt ../automation/requirements.txt
+```
+в котором сделаем несколько небольших правок
+* не разворачиваем поды на мастер-ноды
+* etcd находится только на мастер-нодах
+* корректно прописываются ip-адреса (ansible_host, ip, access_ip)
+* добавляем указание пользователя ansible_user (через переменную ANSIBLE_USER)
+Итоговый файл [inventory.py](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/automation/inventory.py)
 
+А ещё возможно понадобится заменить симлинк `kubespray/library/kube.py` на сам полноценный файл `kubespray/plugins/modules/kube.py`
 
-В итоге после длительного ожидания получаем 
+## 3. Автоматизируем процесс разворачивания кластера
+
+Кластер может быть большим, копирование каждый раз названий нод, ip-адресов и т.д. может привести к ошибкам, поэтому пишем (долго и мучительно) несколько скриптов, которые помогут нам развернуть кластер в одну команду [build.sh](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/build.sh)
+Основные моменты:
+1. Поднятие инфраструктуры с помощью terraform (`terraform apply -auto-approve`)
+2. Получение от него информации, какие в итоге ноды были подняты и по каким адресам доступны (`terraform output -json`)
+3. Формирование и исполнение команды для генерации hosts.yaml (`GENERATE_CMD`)
+4. Формирование кластера с подстановкой актуальных значений (`hosts.yaml` и `k8s-cluster.yml`)
+5. Ожидание доступности нод (`ansible-playbook -i inventory/mycluster/hosts.yaml wait-cluster-reachable.yml`)
+6. Раскатка кластера kubespray'ем (`ansible-playbook -i inventory/mycluster/hosts.yaml cluster.yml`)
+7. Обновление конфига для подключения к кластеру (`admin.conf` -> `$HOME/.kube/config`)
+8. Проверка работоспособности
+
+## 4. Само разворачивание кластера
+
+Запускаем наш скрипт
+```bash
+$ cd /vagrant
+$ . build.sh
+```
+и после длительного ожидания получаем полностью работоспособный кластер
 ```bash
 $ kubectl get pods --all-namespaces
 NAMESPACE     NAME                                       READY   STATUS    RESTARTS      AGE
