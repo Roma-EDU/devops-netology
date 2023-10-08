@@ -99,6 +99,13 @@ stage-worker-2   Ready    <none>          106m   v1.28.2   10.10.1.6     <none> 
 ---
 ### 4. Подготовка cистемы мониторинга и деплой приложения
 
+Скопируем себе готовый пакет [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) в папочку [monitoring](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/monitoring)
+
+1. [x] Git репозиторий [diploma-infrastructure/cluster](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/cluster) с конфигурационными файлами для настройки Kubernetes `grafana.yml` и `app.yml`
+2. [x] Http доступ к web интерфейсу [grafana](http://130.193.54.215:30300) (пользователь `viewer`, пароль `viewer`)
+3. [x] Дашборды в grafana отображающие состояние Kubernetes кластера - Kubernetes/Compute Resources/Cluster настроен в качестве домашней страницы
+4. [x] Http доступ к [тестовому приложению](http://130.193.54.215:30001)
+
 >Уже должны быть готовы конфигурации для автоматического создания облачной инфраструктуры и поднятия Kubernetes кластера.  
 >Теперь необходимо подготовить конфигурационные файлы для настройки нашего Kubernetes кластера.
 >
