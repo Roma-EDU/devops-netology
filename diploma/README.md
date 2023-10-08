@@ -24,8 +24,8 @@
 5. Репозиторий с конфигурацией Kubernetes кластера.
    * Репозиторий [diploma-infrastructure/cluster](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/cluster)
 6. Ссылка на тестовое приложение и веб интерфейс Grafana с данными доступа.
-   * Ссылка на тестовое [приложение](http://130.193.54.215:30001)
-   * Ссылка на веб интерфейс [Grafana](http://130.193.54.215:30300) (пользователь `viewer`, пароль `viewer`)
+   * Ссылка на тестовое [приложение](http://51.250.111.107:30001)
+   * Ссылка на веб интерфейс [Grafana](http://51.250.111.107:31001) (пользователь `viewer`, пароль `viewer`)
 7. Все репозитории рекомендуется хранить на одном ресурсе (github, gitlab)
    * Всё сделано на GitHub, включая простенький CI/CD на основе GitHub Actions [diploma-app/actions](https://github.com/Roma-EDU/diploma-app/actions)
 
@@ -124,9 +124,9 @@ stage-worker-2   Ready    <none>          106m   v1.28.2   10.10.1.6     <none> 
 Скопируем себе готовый пакет [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) в папочку [monitoring](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/monitoring)
 
 1. [x] Git репозиторий [diploma-infrastructure/cluster](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/cluster) с конфигурационными файлами для настройки Kubernetes `grafana.yml` и `app.yml`
-2. [x] Http доступ к web интерфейсу [grafana](http://130.193.54.215:30300) (пользователь `viewer`, пароль `viewer`)
+2. [x] Http доступ к web интерфейсу grafana `http://<master_node_public_ip>:31001` (пользователь `viewer`, пароль `viewer`)
 3. [x] Дашборды в grafana отображающие состояние Kubernetes кластера - Kubernetes/Compute Resources/Cluster настроен в качестве домашней страницы
-4. [x] Http доступ к [тестовому приложению](http://130.193.54.215:30001)
+4. [x] Http доступ к тестовому приложению `http://<master_node_public_ip>:30001`
 
 >Уже должны быть готовы конфигурации для автоматического создания облачной инфраструктуры и поднятия Kubernetes кластера.  
 >Теперь необходимо подготовить конфигурационные файлы для настройки нашего Kubernetes кластера.
