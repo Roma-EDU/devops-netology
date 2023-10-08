@@ -125,7 +125,7 @@ stage-worker-2   Ready    <none>          106m   v1.28.2   10.10.1.6     <none> 
 
 1. [x] CI/CD сделана на основе GitHub Actions [diploma-app](https://github.com/Roma-EDU/diploma-app/actions)
 2. [x] При любом коммите в репозиторие происходит сборка и отправка в [регистр](https://hub.docker.com/repository/docker/roma4edu/diploma_app/general) Docker образа (`roma4edu/diploma_app:<github_sha>`), подробности в [dev.yml](https://github.com/Roma-EDU/diploma-app/actions/workflows/dev.yml)
-3. [x] При релизе (немного поменял условие относительно задания, на мой взгляд так правильнее) происходит сборка и отправка с соответствующим label (точнее два: `latest` и `<tag_name>`) в регистр, подробности в [prod.yml](https://github.com/Roma-EDU/diploma-app/actions/workflows/prod.yml)
+3. [x] При релизе (тег в этом случае тоже будет, но это более осознаное действие, на мой взгляд так правильнее для продакшн-окружения делать) происходит сборка и отправка с соответствующим label (точнее даже два варианта: `roma4edu/diploma_app:latest` и `roma4edu/diploma_app:<tag_name>`) в регистр, подробности в [prod.yml](https://github.com/Roma-EDU/diploma-app/actions/workflows/prod.yml)
 
 >Осталось настроить ci/cd систему для автоматической сборки docker image и деплоя приложения при изменении кода.
 >
