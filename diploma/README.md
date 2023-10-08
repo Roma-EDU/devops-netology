@@ -7,6 +7,28 @@
 5. Настроить CI для автоматической сборки и тестирования.
 6. Настроить CD для автоматического развёртывания приложения.
 
+
+**Результаты**:
+1. Репозиторий с конфигурационными файлами Terraform и готовность продемонстрировать создание всех ресурсов с нуля.
+   * Репозиторий [diploma-infrastructure/infrastructure](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/infrastructure)
+   * Скрипт автоматического поднятия всех ресурсов с нуля [build.sh](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/build.sh)
+   * Скрипт полной очистки [destroy.sh](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/destroy.sh)
+2. Пример pull request с комментариями созданными atlantis'ом или снимки экрана из Terraform Cloud.
+3. Репозиторий с конфигурацией ansible, если был выбран способ создания Kubernetes кластера при помощи ansible.
+   * Репозиторий [diploma-infrastructure/kubespray](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/kubespray)
+   * Конфигурация формируется автоматически на основе [diploma-infrastructure/automation/k8s-cluster.yml](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/automation/k8s-cluster.yml)
+4. Репозиторий с Dockerfile тестового приложения и ссылка на собранный docker image.
+   * Репозиторий приложения [diploma-app](https://github.com/Roma-EDU/diploma-app) 
+   * [Dockerfile](https://github.com/Roma-EDU/diploma-app/blob/master/Dockerfile) в нём
+   * DockerHub с собранными docker image [roma4edu/diploma_app](https://hub.docker.com/repository/docker/roma4edu/diploma_app/general)
+5. Репозиторий с конфигурацией Kubernetes кластера.
+   * Репозиторий [diploma-infrastructure/cluster](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/cluster)
+6. Ссылка на тестовое приложение и веб интерфейс Grafana с данными доступа.
+   * Ссылка на тестовое [приложение](http://130.193.54.215:30001)
+   * Ссылка на веб интерфейс [Grafana](http://130.193.54.215:30300) (пользователь `viewer`, пароль `viewer`)
+7. Все репозитории рекомендуется хранить на одном ресурсе (github, gitlab)
+   * Всё сделано на GitHub, включая простенький CI/CD на основе GitHub Actions [diploma-app/actions](https://github.com/Roma-EDU/diploma-app/actions)
+
 ---
 ## Этапы выполнения
 
