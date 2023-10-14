@@ -14,6 +14,7 @@
    * Скрипт автоматического поднятия всех ресурсов с нуля [build.sh](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/build.sh)
    * Скрипт полной очистки [destroy.sh](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/destroy.sh)
 2. Пример pull request с комментариями созданными atlantis'ом или снимки экрана из Terraform Cloud.
+   * [Pull request #10](https://github.com/Roma-EDU/diploma-infrastructure/pull/10) с комментариями, созданными atlantis'ом
 3. Репозиторий с конфигурацией ansible, если был выбран способ создания Kubernetes кластера при помощи ansible.
    * Репозиторий [diploma-infrastructure/kubespray](https://github.com/Roma-EDU/diploma-infrastructure/tree/master/kubespray)
    * Конфигурация формируется автоматически на основе [diploma-infrastructure/automation/k8s-cluster.yml](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/automation/k8s-cluster.yml)
