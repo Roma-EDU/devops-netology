@@ -150,5 +150,7 @@ $ systemctl status atlantis.service
 В итоге UI atlantis доступен по [ссылке](http://130.193.49.58:4141)
 ![image](https://github.com/Roma-EDU/devops-netology/assets/77544263/07069186-28d7-4cc7-af36-22fddb1c6d12)
 
+Важный нюанс: чтобы atlantis подтягивал корреткный workspace (отличный от default), в корне репозитория добавлен файл [atlantis.yaml](https://github.com/Roma-EDU/diploma-infrastructure/blob/atlantis-1/atlantis.yaml)
+
 
 ## 2. Деплой Docker-образа в кластер Kubernetes при создании тега
