@@ -3,6 +3,7 @@
 1. Добавить Atlantis
    * [Pull request #10](https://github.com/Roma-EDU/diploma-infrastructure/pull/10) с комментариями, созданными atlantis'ом
 2. Добавить деплой Docker-образа в кластер Kubernetes при создании тега
+   * Успешно отработавший webhook [New image webhook](https://github.com/Roma-EDU/diploma-app/actions/runs/6524488805/job/17716180431)
 
 ## 1. Добавление Atlantis
 
@@ -155,3 +156,37 @@ $ systemctl status atlantis.service
 
 
 ## 2. Деплой Docker-образа в кластер Kubernetes при создании тега
+
+На той же служебной машине поднимем второе приложение, которое будет отвечать за обновление подов при появлении нового Docker-образа
+1. Установим kubectl `sudo snap install kubectl --classic`
+2. Скопируем настройки подключения к кластеру с машины, на которой запускался kubespray на служебную машину `scp ~/.kube/config ubuntu@130.193.49.58:~/.kube/config`
+3. Скопируем приложение [webhook.py](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/automation/webhook.py) в `/opt/webhooks/webhook.py`
+4. Запустим его как службу `/etc/systemd/system/webhook.service`
+```
+[Unit]
+Description=New Docker Image Webhook
+
+[Service]
+User=ubuntu
+Group=ubuntu
+Restart=on-failure
+ExecStart=python3 /opt/webhooks/webhook.py --token <SECRET_TOKEN> --deployment deployment/diploma-app
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+$ sudo systemctl daemon-reload
+$ sudo systemctl start webhook.service
+$ sudo systemctl enable webhook.service
+Created symlink /etc/systemd/system/multi-user.target.wants/webhook.service → /etc/systemd/system/webhook.service.
+```
+
+Затем в [prod.yml](https://github.com/Roma-EDU/diploma-app/blob/master/.github/workflows/prod.yml) допишем последний шаг для вызова этого приложения при создании нового Docker-образа (при необходимости можно в json добавить например название Docker-образа, но поскольку каждый свежий образ получает тег latest, а [app.yml](https://github.com/Roma-EDU/diploma-infrastructure/blob/master/cluster/app.yml) указана настройка `imagePullPolicy: Always`, то при пересоздании образа подтянется свеженький, что и требовалось по заданию)
+```
+- name: New image webhook
+  run: curl ${{ secrets.NEW_DEPLOYMENT_URL }} -X POST -H "Content-Type: application/json" -d "{\"token\":\"${{ secrets.NEW_DEPLOYMENT_TOKEN }}\"}" 
+```
+
+Видим, что при создании тега вебхук успешно отработал и в кластере стали пересоздаваться поды под новую версию контейнера
+![image](https://github.com/Roma-EDU/devops-netology/assets/77544263/16ef7850-833a-4e9e-94f5-318bf251da58)
