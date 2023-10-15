@@ -1,6 +1,7 @@
 # Доработки по [дипломному проекту](./)
 
 1. Добавить Atlantis
+   * [Pull request #10](https://github.com/Roma-EDU/diploma-infrastructure/pull/10) с комментариями, созданными atlantis'ом
 2. Добавить деплой Docker-образа в кластер Kubernetes при создании тега
 
 ## 1. Добавление Atlantis
