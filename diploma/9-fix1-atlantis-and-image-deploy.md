@@ -91,8 +91,8 @@ provider_installation {
 ```
 
 И скопированы "секретные" файлы
-* ~/.authorized_key.json (ключ от сервисного аккаунта yc для терраформ)
-* ~/.ssh/id_rsa.pub (публичный ключ для доступа по ssh к установливаемым машинам кластера)
+* `~/.authorized_key.json` (ключ от сервисного аккаунта yc для терраформ)
+* `~/.ssh/id_rsa.pub` (публичный ключ для доступа по ssh к установливаемым машинам кластера)
 
 Кроме того, добавлен серверный файл конфигурации `/opt/atlantis/repos.yaml`, чтобы получить доступ к бакету с хранилищем состояния терраформа
 ```yaml
@@ -146,3 +146,9 @@ $ sudo systemctl start atlantis.service
 $ sudo systemctl enable atlantis.service
 $ systemctl status atlantis.service
 ```
+
+В итоге UI atlantis доступен по [ссылке](http://130.193.49.58:4141)
+![image](https://github.com/Roma-EDU/devops-netology/assets/77544263/07069186-28d7-4cc7-af36-22fddb1c6d12)
+
+
+## 2. Деплой Docker-образа в кластер Kubernetes при создании тега
